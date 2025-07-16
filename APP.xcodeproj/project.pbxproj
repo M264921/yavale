@@ -16,6 +16,7 @@
 		5B6DB9A82E27389300D83B17 /* yavaleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6DB9A72E27389300D83B17 /* yavaleTests.swift */; };
 		5B6DB9B22E27389300D83B17 /* yavaleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6DB9B12E27389300D83B17 /* yavaleUITests.swift */; };
 		5B6DB9B42E27389300D83B17 /* yavaleUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6DB9B32E27389300D83B17 /* yavaleUITestsLaunchTests.swift */; };
+		5B7B9EF42E279E2200184466 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B9EF32E279E2200184466 /* index.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 		5B6DB9AD2E27389300D83B17 /* APPUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = APPUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B6DB9B12E27389300D83B17 /* yavaleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = yavaleUITests.swift; sourceTree = "<group>"; };
 		5B6DB9B32E27389300D83B17 /* yavaleUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = yavaleUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		5B7B9EF32E279E2200184466 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 		5B6DB9852E27388C00D83B17 = {
 			isa = PBXGroup;
 			children = (
+				5B7B9EF32E279E2200184466 /* index.html */,
 				5B6DB9902E27388D00D83B17 /* yavale */,
 				5B6DB9A62E27389300D83B17 /* yavaleTests */,
 				5B6DB9B02E27389300D83B17 /* yavaleUITests */,
@@ -237,6 +240,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B7B9EF42E279E2200184466 /* index.html in Resources */,
 				5B6DB9992E27389200D83B17 /* Preview Assets.xcassets in Resources */,
 				5B6DB9962E27389200D83B17 /* Assets.xcassets in Resources */,
 			);
