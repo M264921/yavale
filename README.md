@@ -1,5 +1,5 @@
 ## Project Overview
-This repository builds on the open-source iOS App Signer to create **MontanaTV**, an AceStream-based media application. Future development will add P2P search and Magic Player features similar to the Horus addon.
+This repository builds on the open-source iOS App Signer to create **MontanaTV**, an AceStream-based media application. The bundled HTML page now pulls in AceStream's P2P Search and Magic Player scripts, enabling torrent search and playback directly within the app.
 
 ## Agradecimientos
 Quiero agradecer al proyecto [iOS App Signer](https://github.com/DanTheMan827/ios-app-signer) por su excelente trabajo. Gracias a su repositorio he podido iniciar el desarrollo de **MontanaOpenAITV**.
