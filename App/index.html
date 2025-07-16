@@ -2,27 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MontanaOpenAiTV</title>
 </head>
 <body>
-  <h1>🎬 MontanaOpenAiTV</h1>
-  <p>Introduce un ID de AceStream:</p>
-  <input type="text" id="aceid" placeholder="acestream://...">
-  <button onclick="go()">Reproducir</button>
-
-  <script>
-    function go() {
-      const id = document.getElementById("aceid").value.trim();
-      if (id) {
-        const url = id.replace("acestream://", 
-"https://toninomontana.ddns.net/ace/");
-        window.location.href = url;
-      } else {
-        alert("Pon un ID válido!");
-      }
-    }
-  </script>
+  <h1>👋 MontanaOpenAiTV funciona!</h1>
 </body>
 </html>
-
