@@ -1,37 +1,28 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>MontanaOpenAiTV</title>
-</head>
-<body style="font-family:sans-serif; text-align:center; padding-top:50px;">
-    <h2>🎬 MontanaOpenAiTV</h2>
-    <p>Pega tu ID de AceStream y dale caña:</p>
-
-    <input id="aceInput" placeholder="acestream://xxxx..." style="width:70%; padding:10px; font-size:16px;" />
-    <br><br>
-    <button onclick="abrirEnlace()" style="padding:10px 20px; font-size:16px;">▶️ Reproducir</button>
-
+    <script src="P2P_Search.min.acestream.js"></script>
+    <script src="Magic_Player.acestream.js"></script>
     <script>
-        function abrirEnlace() {
-            const input = document.getElementById('aceInput');
-            let id = input.value.trim();
-
-            if (!id) {
-                alert('¡Introduce un enlace o ID válido!');
+        function playStream() {
+            const input = document.getElementById('ace_id').value.trim();
+            if (!input) {
+                alert("Introduce un ID de AceStream");
                 return;
             }
-
-            // Remove the acestream:// prefix if present
-            id = id.replace('acestream://', '').trim();
-
-            // Redirect to your hosting server
-            window.location.href = "https://toninomontana.ddns.net/p/" + id;
+            const id = input.replace("acestream://", "");
+            const finalUrl = "http://toninomontana.ddns.net:6878/ace/getstream?id=" + id;
+            window.location.href = finalUrl;
         }
     </script>
-
-    <!-- AceStream P2P Search and Magic Player -->
-    <script src="http://awe-static.acestream.me/userscripts/p2p-search/acestream-search-source.js?v0.35.2"></script>
-    <script src="http://awe-static.acestream.me/userscripts/magicplayer/userscript_source.js?v=1.1.4"></script>
+</head>
+<body>
+    <h1>MontanaOpenAiTV</h1>
+    <p>Introduce el enlace AceStream:</p>
+    <input type="text" id="ace_id" placeholder="acestream://...">
+    <button onclick="playStream()">Reproducir</button>
 </body>
 </html>
