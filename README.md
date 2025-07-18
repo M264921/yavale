@@ -1,26 +1,29 @@
-## Project Overview
-This repository builds on the open-source iOS App Signer to create **MontanaTV**, an AceStream-based media application. The bundled HTML page now pulls in AceStream's P2P Search and Magic Player scripts, enabling torrent search and playback directly within the app.
+# MontanaOpenAiTV 🎬🔥
 
-## Agradecimientos
-Quiero agradecer al proyecto [iOS App Signer](https://github.com/DanTheMan827/ios-app-signer) por su excelente trabajo. Gracias a su repositorio he podido iniciar el desarrollo de **MontanaOpenAITV**.
+Plataforma personal para reproducir enlaces AceStream desde iOS, navegador o cualquier dispositivo,
+usando tu propia VPN (WireGuard) y un addon de Stremio personalizado.
 
-# iOS App Signer
-This is an app for OS X that can (re)sign apps and bundle them into ipa files that are ready to be installed on an iOS device.
+## Funcionalidades
 
-Supported input types are: ipa, deb, app, xcarchive
+✅ Reproduce enlaces AceStream desde un input directo (`index.html`)  
+✅ Usa tu propia VPN con WireGuard para acceso remoto seguro  
+✅ Añade catálogos personalizados con tu propio addon de Stremio  
+✅ Acceso multiplataforma (iPhone, Safari, VLC, Infuse...)
 
-Usage
-------
-This app requires Xcode to be installed, it has run successfully on the new macOS 12 Monterey.
+## Estructura
 
-You need a provisioning profile and signing certificate, you can get these from Xcode by creating a new project.
+- `app-ios/` → Proyecto HTML/WebView para compilar como app iOS
+- `addon/` → Tu addon personalizado de Stremio (vacío por ahora)
+- `wireguard/` → Configuraciones de cliente y servidor + guía
+- `README.md` → Esta guía
+- `.gitignore`, `LICENSE` → Añadir según tu preferencia
 
-You can then open up iOS App Signer and select your input file, signing certificate, provisioning file, and optionally specify a new application ID and/or application display name.
+## Cómo empezar
 
-<a href="https://paypal.me/DanTheMan827" class="donate"><img src="http://dantheman827.github.io/images/donate-button.svg" height="44" alt="Donate"></a>
+1. Carga `app-ios/index.html` en Safari o compílalo como app con Xcode.
+2. Añade tu ID AceStream y pulsa reproducir.
+3. (Opcional) Conéctate a tu VPN antes con WireGuard (`wireguard/montana-client.conf`)
+4. (Próximamente) Usa el addon de Stremio con tu catálogo personalizado.
 
-Thanks To
-------
-[maciekish / iReSign](https://github.com/maciekish/iReSign): The basic process was gleaned from the source code of this project.
-## Repository Cleanup
-The project previously stored ZIP archives of the iOS App Signer source. These archives have been removed from version control in favor of keeping only the readable source.
+---
+Proyecto iniciado por @M264921 con ❤️ y ayudita de ChatGPT.
