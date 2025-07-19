@@ -1,29 +1,18 @@
-# MontanaOpenAiTV 🎬🔥
-
-Plataforma personal para reproducir enlaces AceStream desde iOS, navegador o cualquier dispositivo,
-usando tu propia VPN (WireGuard) y un addon de Stremio personalizado.
-
-## Funcionalidades
-
-✅ Reproduce enlaces AceStream desde un input directo (`index.html`)  
-✅ Usa tu propia VPN con WireGuard para acceso remoto seguro  
-✅ Añade catálogos personalizados con tu propio addon de Stremio  
-✅ Acceso multiplataforma (iPhone, Safari, VLC, Infuse...)
+# MontanaOpenAiTV
 
 ## Estructura
+- app/: App iOS en Swift que abre html/index.html en WKWebView  
+- html/: HTML interactivo para abrir ID AceStream en apps externas  
+- addon/: Addon para Stremio con catálogo y stream handler  
+- vpn/: Config de cliente WireGuard de ejemplo  
 
-- `app-ios/` → Proyecto HTML/WebView para compilar como app iOS
-- `addon/` → Tu addon personalizado de Stremio (vacío por ahora)
-- `wireguard/` → Configuraciones de cliente y servidor + guía
-- `README.md` → Esta guía
-- `.gitignore`, `LICENSE` → Añadir según tu preferencia
+## Uso
+1. Clona este repo y asegúrate de que el remoto `origin` apunta a tu GitHub.  
+2. Ejecuta este script una sola vez.  
+3. `git add . && git commit -m "Init MontanaOpenAiTV base" && git push origin main`  
+4. Abre `app/` en Xcode, añade `html/` al bundle y compila tu IPA.
 
-## Cómo empezar
+### Seguridad
+El archivo de ejemplo `vpn/montana-client.conf` utiliza valores ficticios.
+Nunca subas tus claves reales de WireGuard ni otros datos sensibles al repositorio.
 
-1. Carga `app-ios/index.html` en Safari o compílalo como app con Xcode.
-2. Añade tu ID AceStream y pulsa reproducir.
-3. (Opcional) Conéctate a tu VPN antes con WireGuard (`wireguard/montana-client.conf`)
-4. (Próximamente) Usa el addon de Stremio con tu catálogo personalizado.
-
----
-Proyecto iniciado por @M264921 con ❤️ y ayudita de ChatGPT.
