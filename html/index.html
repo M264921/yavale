@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>MontanaOpenAiTV</title></head><body>
+<input id="streamId" placeholder="AceStream ID"><button id="playBtn">Reproducir</button>
+<script>
+  document.getElementById('playBtn').onclick=()=>{
+    let id=document.getElementById('streamId').value.trim();
+    if(!id){alert('ID?');return;}
+    const opts=[["Safari",`acestream://${id}`],["VLC",`vlc://${id}`],["Infuse",`infuse://${id}`],["Kodi",`kodi://${id}`]];
+    let sel=prompt('Elige:\n'+opts.map((o,i)=>`${i+1}. ${o[0]}`).join('\n'))-1;
+    if(opts[sel]) location=opts[sel][1];
+  };
+</script></body></html>
