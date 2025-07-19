@@ -1,0 +1,15 @@
+# macOS and Xcode
+.DS_Store
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcuserstate
+
+# Xcode project user data
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Swift Package Manager
+Packages/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
