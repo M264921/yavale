@@ -1,47 +1,29 @@
-## Uso
-1. Clona este repo y asegúrate de que el remoto `origin` apunta a tu GitHub.
-2. Ejecuta `./setup.sh` una sola vez.
-3. `git add . && git commit -m "Init MontanaOpenAiTV base" && git push origin main`
-4. Abre `app/` en Xcode, añade `html/` al bundle y compila tu IPA.
+# MontanaOpenAiTV 🎬🔥
 
-### Seguridad
-El archivo de ejemplo `vpn/montana-client.conf` utiliza valores ficticios.
-Nunca subas tus claves reales de WireGuard ni otros datos sensibles al repositorio.
+Plataforma personal para reproducir enlaces AceStream desde iOS, navegador o cualquier dispositivo,
+usando tu propia VPN (WireGuard) y un addon de Stremio personalizado.
 
-## Firma e instalación de IPA en iPhone
+## Funcionalidades
 
-### Requisitos
-- MacOS (puede ser un Mac real o una VM)
-- Xcode (desde la App Store)
-- [iOS App Signer](https://dantheman827.github.io/ios-app-signer/)
-- iTunes (para instalar IPA firmadas)
+✅ Reproduce enlaces AceStream desde un input directo (`index.html`)  
+✅ Usa tu propia VPN con WireGuard para acceso remoto seguro  
+✅ Añade catálogos personalizados con tu propio addon de Stremio  
+✅ Acceso multiplataforma (iPhone, Safari, VLC, Infuse...)
 
-### Paso 1: Importar el Certificado
-1. Abre `AltStoreSigningCertificate.p12`
-2. Contraseña: `12345`
+## Estructura
 
-### Paso 2: Consigue tu IPA
-Descarga una app en formato `.ipa`. Puedes encontrar apps en:
-- https://appdb.to
-- https://iphonecake.com
+- `app-ios/` → Proyecto HTML/WebView para compilar como app iOS
+- `addon/` → Tu addon personalizado de Stremio (vacío por ahora)
+- `wireguard/` → Configuraciones de cliente y servidor + guía
+- `README.md` → Esta guía
+- `.gitignore`, `LICENSE` → Añadir según tu preferencia
 
-También necesitas un `.mobileprovision`. Puedes bajarlo de FlekSt0re.
+## Cómo empezar
 
-### Paso 3: Firma la App
-1. Abre iOS App Signer.
-2. Rellena los campos:
-   - **Input File** → el `.ipa` que descargaste
-   - **Signing Certificate** → el que importaste antes
-   - **Provisioning Profile** → el `.mobileprovision` de FlekSt0re
-3. Haz clic en **Start**
+1. Carga `app-ios/index.html` en Safari o compílalo como app con Xcode.
+2. Añade tu ID AceStream y pulsa reproducir.
+3. (Opcional) Conéctate a tu VPN antes con WireGuard (`wireguard/montana-client.conf`)
+4. (Próximamente) Usa el addon de Stremio con tu catálogo personalizado.
 
-### Paso 4: Instálalo
-Tienes dos formas:
-- Con iTunes (conecta tu iPhone y arrastra el `.ipa`)
-- O súbelo a:
-  - https://www.diawi.com
-  - https://www.installonair.com
-
-Desde ahí lo puedes instalar directo desde el navegador de tu iPhone.
-
-Enjoy your Montana app 😎
+---
+Proyecto iniciado por @M264921 con ❤️ y ayudita de ChatGPT.
