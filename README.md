@@ -27,3 +27,11 @@ usando tu propia VPN (WireGuard) y un addon de Stremio personalizado.
 
 ---
 Proyecto iniciado por @M264921 con ❤️ y ayudita de ChatGPT.
+
+## Archivos de grandes dimensiones
+
+El archivo `MontanaOpenAiTV_Repo.zip` contenía una copia del repositorio para
+distribución rápida. Ya no es necesario para ejecutar el proyecto y se ha
+eliminado del código fuente. En caso de requerirse, puede alojarse en la
+sección de _Releases_ en GitHub en lugar de almacenarse dentro del
+repositorio.

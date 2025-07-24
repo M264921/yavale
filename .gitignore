@@ -14,3 +14,6 @@ Packages/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 
 montana-client.conf
+
+# Avoid committing packaged archives
+MontanaOpenAiTV_Repo.zip
