@@ -14,3 +14,10 @@ Packages/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 
 montana-client.conf
+
+# Build output directories
+build/
+dist/
+
+# Archives
+MontanaOpenAiTV_Repo.zip
