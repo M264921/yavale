@@ -13,4 +13,8 @@ DerivedData/
 Packages/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 
+# Node
+node_modules/
+addon/package-lock.json
+
 montana-client.conf
