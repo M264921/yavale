@@ -1,0 +1,17 @@
+{
+  "name": "yavale",
+  "version": "1.0.0",
+  "description": "Plataforma personal para reproducir enlaces AceStream desde iOS, navegador o cualquier dispositivo, usando tu propia VPN (WireGuard) y un addon de Stremio personalizado.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:web": "node ./scripts/dev-server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
