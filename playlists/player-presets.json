@@ -1,0 +1,32 @@
+[
+  {
+    "id": "living-room",
+    "label": "Sala de estar (Chromecast)",
+    "type": "template",
+    "template": "acecast://device/living-room/play?infohash={{infohash}}&title={{title_encoded}}"
+  },
+  {
+    "id": "lg-oled65c4",
+    "label": "[LG] webOS TV OLED65C4",
+    "type": "template",
+    "template": "acecast://device/lg-oled65c4/play?infohash={{infohash}}&title={{title_encoded}}"
+  },
+  {
+    "id": "aftss",
+    "label": "AFTSS (AceCast)",
+    "type": "template",
+    "template": "acecast://device/aftss/play?infohash={{infohash}}&title={{title_encoded}}"
+  },
+  {
+    "id": "ace-player-hd",
+    "label": "Ace Player HD",
+    "type": "template",
+    "template": "acestream://{{infohash}}"
+  },
+  {
+    "id": "windows-media-player",
+    "label": "Reproductor de Windows Media",
+    "type": "template",
+    "template": "wmplayer.exe?{{url_raw}}"
+  }
+]
