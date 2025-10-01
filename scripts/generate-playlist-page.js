@@ -101,6 +101,32 @@ function parseExtInf(line) {
   return info;
 }
 
+const PLAYERS = [
+  {
+    id: "acestream",
+    label: "Ace Stream (engine local)",
+    type: "acestream"
+  },
+  {
+    id: "vlc",
+    label: "VLC (iOS/macOS)",
+    type: "template",
+    template: "vlc-x-callback://x-callback-url/stream?url={{url}}"
+  },
+  {
+    id: "infuse",
+    label: "Infuse",
+    type: "template",
+    template: "infuse://x-callback-url/play?url={{url}}"
+  },
+  {
+    id: "kodi",
+    label: "Kodi",
+    type: "template",
+    template: "kodi://play?item={{url}}"
+  }
+];
+
 function buildHtml(entries) {
   const playlistJson = JSON.stringify(entries).replace(/</g, "\\u003C");
   const generatedAt = new Date().toISOString();
@@ -146,104 +172,160 @@ function buildHtml(entries) {
       padding: 0.65rem 0.9rem;
       border-radius: 0.75rem;
       border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.65);
       color: inherit;
     }
     select {
-      flex: 0 1 220px;
       padding: 0.65rem 0.9rem;
       border-radius: 0.75rem;
       border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.65);
       color: inherit;
     }
-    .playlist {
+    main {
       display: grid;
-      gap: 1rem;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
     }
     .card {
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      border-radius: 1rem;
-      padding: 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
-      backdrop-filter: blur(12px);
-      transition: transform 0.18s ease, border-color 0.18s ease;
+      gap: 0.75rem;
+      padding: 1rem;
+      border-radius: 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 15px 25px rgba(15, 23, 42, 0.25);
+      transition: transform 120ms ease, box-shadow 120ms ease;
     }
     .card:hover {
       transform: translateY(-3px);
-      border-color: rgba(94, 234, 212, 0.45);
+      box-shadow: 0 18px 28px rgba(15, 23, 42, 0.3);
     }
     .card h2 {
       margin: 0;
       font-size: 1.05rem;
-      line-height: 1.35rem;
     }
     .meta {
       display: flex;
-      gap: 0.5rem;
       flex-wrap: wrap;
-      font-size: 0.85rem;
+      gap: 0.4rem;
+      font-size: 0.8rem;
       color: #94a3b8;
     }
-    a.play {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
+    .meta span {
+      padding: 0.15rem 0.45rem;
       border-radius: 999px;
-      padding: 0.55rem 0.9rem;
-      background: linear-gradient(135deg, #22d3ee, #0ea5e9);
-      color: #021321;
+      background: rgba(148, 163, 184, 0.15);
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .actions a,
+    .actions button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
       font-weight: 600;
       text-decoration: none;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      color: #0f172a;
+      background: #38bdf8;
     }
-    a.play:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(14, 165, 233, 0.35);
-    }
-    button.copy {
-      padding: 0.45rem 0.9rem;
-      border-radius: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: transparent;
+    .actions button.copy,
+    .actions button.share {
+      background: rgba(148, 163, 184, 0.15);
       color: inherit;
-      cursor: pointer;
-      transition: border-color 0.15s ease, transform 0.15s ease;
     }
-    button.copy:hover {
-      border-color: rgba(94, 234, 212, 0.6);
-      transform: translateY(-1px);
+    details.player-picker {
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 0.5rem;
+    }
+    details.player-picker summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 600;
+      padding: 0.3rem 0.4rem;
+    }
+    details.player-picker summary::-webkit-details-marker {
+      display: none;
+    }
+    .player-picker__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin: 0.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .player-picker__list a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.55rem;
+      text-decoration: none;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
     }
     footer {
-      margin-top: auto;
       font-size: 0.8rem;
       color: #64748b;
-      text-align: right;
+      text-align: center;
+      margin-top: auto;
+    }
+    @media (prefers-color-scheme: light) {
+      body {
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        box-shadow: 0 15px 25px rgba(100, 116, 139, 0.15);
+      }
+      .actions a,
+      .actions button {
+        color: white;
+        background: #2563eb;
+      }
+      .actions button.copy,
+      .actions button.share {
+        background: rgba(148, 163, 184, 0.2);
+        color: inherit;
+      }
+      .player-picker__list a {
+        color: #2563eb;
+        background: rgba(37, 99, 235, 0.12);
+      }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Selecciona un canal para abrirlo con tu reproductor AceStream o copialo en Stremio. Pagina generada automaticamente el ${generatedAt}.</p>
+    <p>Actualizada: ${generatedAt}</p>
     <div class="toolbar">
-      <input type="search" id="search" placeholder="Buscar canal o descripcion" aria-label="Buscar canal" />
+      <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group">
         <option value="">Todos los grupos</option>
       </select>
     </div>
   </header>
-  <main>
-    <section class="playlist" id="playlist"></section>
+  <main id="playlist" role="list">
   </main>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
   <script>
     const playlist = ${playlistJson};
+    const players = ${JSON.stringify(PLAYERS)};
     const playlistContainer = document.getElementById("playlist");
     const searchInput = document.getElementById("search");
     const groupFilter = document.getElementById("group");
@@ -254,6 +336,29 @@ function buildHtml(entries) {
       option.value = group;
       option.textContent = group;
       groupFilter.appendChild(option);
+    }
+
+    function buildPlayerUrl(player, url) {
+      if (player.type === "acestream") {
+        if (url.startsWith("acestream://")) {
+          return url;
+        }
+        if (url.startsWith("magnet:?xt=urn:btih:")) {
+          const hash = url.split("magnet:?xt=urn:btih:")[1];
+          return "acestream://" + hash;
+        }
+        return url;
+      }
+
+      if (player.type === "template" && player.template) {
+        const encoded = encodeURIComponent(url);
+        let result = player.template;
+        result = result.split("{{url}}").join(encoded);
+        result = result.split("{{url_raw}}").join(url);
+        return result;
+      }
+
+      return url;
     }
 
     function render(list) {
@@ -268,6 +373,7 @@ function buildHtml(entries) {
       for (const item of list) {
         const card = document.createElement("article");
         card.className = "card";
+        card.setAttribute("role", "listitem");
 
         const title = document.createElement("h2");
         title.textContent = item.title || "Canal sin nombre";
@@ -287,13 +393,39 @@ function buildHtml(entries) {
         }
         card.appendChild(meta);
 
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
         const button = document.createElement("a");
         button.className = "play";
         button.href = item.url;
         button.textContent = "Reproducir";
         button.target = "_blank";
         button.rel = "noreferrer";
-        card.appendChild(button);
+        actions.appendChild(button);
+
+        if (players.length) {
+          const picker = document.createElement("details");
+          picker.className = "player-picker";
+          const summary = document.createElement("summary");
+          summary.textContent = "Seleccionar reproductor";
+          picker.appendChild(summary);
+          const listEl = document.createElement("ul");
+          listEl.className = "player-picker__list";
+
+          for (const player of players) {
+            const li = document.createElement("li");
+            const link = document.createElement("a");
+            link.textContent = player.label;
+            link.href = buildPlayerUrl(player, item.url);
+            link.target = "_blank";
+            link.rel = "noreferrer";
+            li.appendChild(link);
+            listEl.appendChild(li);
+          }
+          picker.appendChild(listEl);
+          actions.appendChild(picker);
+        }
 
         const copyBtn = document.createElement("button");
         copyBtn.type = "button";
@@ -313,8 +445,39 @@ function buildHtml(entries) {
             }, 1500);
           }
         });
-        card.appendChild(copyBtn);
+        actions.appendChild(copyBtn);
 
+        const shareBtn = document.createElement("button");
+        shareBtn.type = "button";
+        shareBtn.className = "share";
+        shareBtn.textContent = "Compartir";
+        shareBtn.addEventListener("click", async () => {
+          const shareData = {
+            title: item.title || "Canal AceStream",
+            text: item.title || "Canal AceStream",
+            url: item.url
+          };
+          if (navigator.share) {
+            try {
+              await navigator.share(shareData);
+              return;
+            } catch (error) {
+              console.warn("Share cancelado", error);
+            }
+          }
+          try {
+            await navigator.clipboard.writeText(item.url);
+            shareBtn.textContent = "Copiado";
+            setTimeout(() => {
+              shareBtn.textContent = "Compartir";
+            }, 1500);
+          } catch (error) {
+            alert("No se pudo compartir ni copiar este enlace");
+          }
+        });
+        actions.appendChild(shareBtn);
+
+        card.appendChild(actions);
         playlistContainer.appendChild(card);
       }
     }
@@ -341,7 +504,6 @@ function buildHtml(entries) {
 </body>
 </html>`;
 }
-
 function main() {
   ensureDirs();
   const sourcePath = resolveSourcePath(process.argv);
@@ -368,3 +530,4 @@ function main() {
 }
 
 main();
+
