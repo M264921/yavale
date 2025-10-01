@@ -101,10 +101,10 @@ function parseExtInf(line) {
   return info;
 }
 
-const PLAYERS = [
+const DEFAULT_PLAYER_PRESETS = [
   {
-    id: "acestream",
-    label: "Ace Stream (engine local)",
+    id: "acestream-engine",
+    label: "Ace Stream (motor local)",
     type: "acestream"
   },
   {
@@ -124,11 +124,135 @@ const PLAYERS = [
     label: "Kodi",
     type: "template",
     template: "kodi://play?item={{url}}"
+  },
+  {
+    id: "ace-player-hd",
+    label: "Ace Player HD",
+    type: "template",
+    template: "acestream://{{infohash}}"
+  },
+  {
+    id: "acecast",
+    label: "AceCast (seleccionar dispositivo)",
+    type: "template",
+    template:
+      "acecast://play?method=fromHash&infohash={{infohash}}&name={{title_encoded}}"
+  },
+  {
+    id: "windows-media-player",
+    label: "Reproductor de Windows Media",
+    type: "template",
+    template: "wmplayer.exe?{{url_raw}}"
   }
 ];
 
-function buildHtml(entries) {
+function resolvePlayerPresetPath() {
+  const envPath = process.env.PLAYER_PRESETS
+    ? path.resolve(projectRoot, process.env.PLAYER_PRESETS)
+    : null;
+
+  const candidates = [
+    envPath,
+    path.join(playlistsDir, "players.json"),
+    path.join(playlistsDir, "player-presets.json")
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function loadPlayerPresets() {
+  const presetPath = resolvePlayerPresetPath();
+  if (!presetPath) {
+    return DEFAULT_PLAYER_PRESETS;
+  }
+
+  try {
+    const raw = fs.readFileSync(presetPath, "utf8");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      console.warn(
+        `[generate-playlist] ${presetPath} no contiene un array, usando valores por defecto.`
+      );
+      return DEFAULT_PLAYER_PRESETS;
+    }
+
+    const sanitized = parsed
+      .map((entry, index) => sanitizePlayerPreset(entry, index, presetPath))
+      .filter(Boolean);
+
+    if (!sanitized.length) {
+      console.warn(
+        `[generate-playlist] No se encontraron presets válidos en ${presetPath}, usando valores por defecto.`
+      );
+      return DEFAULT_PLAYER_PRESETS;
+    }
+
+    return sanitized;
+  } catch (error) {
+    console.warn(
+      `[generate-playlist] No se pudo leer ${presetPath}, usando valores por defecto.`,
+      error
+    );
+    return DEFAULT_PLAYER_PRESETS;
+  }
+}
+
+function sanitizePlayerPreset(entry, index, presetPath) {
+  if (!entry || typeof entry !== "object") {
+    console.warn(
+      `[generate-playlist] Preset inválido en ${presetPath} (posición ${index}).`
+    );
+    return null;
+  }
+
+  const id = typeof entry.id === "string" && entry.id.trim();
+  const label = typeof entry.label === "string" && entry.label.trim();
+  const type = typeof entry.type === "string" && entry.type.trim();
+
+  if (!id || !label || !type) {
+    console.warn(
+      `[generate-playlist] Preset omitido en ${presetPath} (posición ${index}) por campos requeridos faltantes.`
+    );
+    return null;
+  }
+
+  const preset = {
+    id,
+    label,
+    type,
+    isDefault: Boolean(entry.isDefault)
+  };
+
+  if (type === "template") {
+    const template =
+      typeof entry.template === "string" && entry.template.trim().length
+        ? entry.template
+        : null;
+    if (!template) {
+      console.warn(
+        `[generate-playlist] Preset ${id} omitido: falta template para tipo template.`
+      );
+      return null;
+    }
+    preset.template = template;
+  }
+
+  if (entry.icon) {
+    preset.icon = entry.icon;
+  }
+
+  return preset;
+}
+
+function buildHtml(entries, playerPresets) {
   const playlistJson = JSON.stringify(entries).replace(/</g, "\\u003C");
+  const playersJson = JSON.stringify(playerPresets).replace(/</g, "\\u003C");
   const generatedAt = new Date().toISOString();
 
   return `<!DOCTYPE html>
@@ -219,9 +343,10 @@ function buildHtml(entries) {
       background: rgba(148, 163, 184, 0.15);
     }
     .actions {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 0.5rem;
+      align-items: stretch;
     }
     .actions a,
     .actions button {
@@ -235,46 +360,93 @@ function buildHtml(entries) {
       cursor: pointer;
       font-weight: 600;
       text-decoration: none;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+    .actions a.play {
       color: #0f172a;
       background: #38bdf8;
+      box-shadow: 0 10px 18px rgba(56, 189, 248, 0.35);
     }
+    .actions a.play:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(56, 189, 248, 0.4);
+    }
+    .actions button.secondary,
     .actions button.copy,
     .actions button.share {
       background: rgba(148, 163, 184, 0.15);
       color: inherit;
     }
-    details.player-picker {
-      background: rgba(15, 23, 42, 0.35);
-      border-radius: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      padding: 0.5rem;
+    .actions button.secondary:hover,
+    .actions button.copy:hover,
+    .actions button.share:hover {
+      background: rgba(148, 163, 184, 0.25);
     }
-    details.player-picker summary {
-      cursor: pointer;
-      list-style: none;
-      font-weight: 600;
-      padding: 0.3rem 0.4rem;
+    .player-dropdown {
+      position: relative;
+      width: 100%;
     }
-    details.player-picker summary::-webkit-details-marker {
+    .player-dropdown__toggle {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .player-dropdown__arrow {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid currentColor;
+      transition: transform 120ms ease;
+    }
+    .player-dropdown.is-open .player-dropdown__arrow {
+      transform: rotate(180deg);
+    }
+    .player-dropdown__menu {
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      left: 0;
+      right: 0;
       display: none;
-    }
-    .player-picker__list {
-      display: flex;
       flex-direction: column;
       gap: 0.4rem;
-      margin: 0.5rem 0 0;
-      padding: 0;
+      margin: 0;
+      padding: 0.6rem;
       list-style: none;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 18px 28px rgba(15, 23, 42, 0.45);
+      z-index: 10;
     }
-    .player-picker__list a {
+    .player-dropdown.is-open .player-dropdown__menu {
+      display: flex;
+    }
+    .player-dropdown__menu li a {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.5rem 0.6rem;
-      border-radius: 0.55rem;
+      justify-content: flex-start;
+      gap: 0.45rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.6rem;
       text-decoration: none;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.12);
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .player-dropdown__menu li a img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.6));
+    }
+    .player-dropdown__menu li a span {
+      flex: 1;
+    }
+    .player-dropdown__menu li a:hover,
+    .player-dropdown__menu li a:focus-visible {
+      background: rgba(56, 189, 248, 0.2);
+      color: #f0f9ff;
     }
     footer {
       font-size: 0.8rem;
@@ -292,17 +464,23 @@ function buildHtml(entries) {
         border: 1px solid rgba(148, 163, 184, 0.45);
         box-shadow: 0 15px 25px rgba(100, 116, 139, 0.15);
       }
-      .actions a,
-      .actions button {
+      .actions a.play {
         color: white;
         background: #2563eb;
+        box-shadow: 0 12px 20px rgba(37, 99, 235, 0.35);
       }
+      .actions button.secondary,
       .actions button.copy,
       .actions button.share {
         background: rgba(148, 163, 184, 0.2);
         color: inherit;
       }
-      .player-picker__list a {
+      .player-dropdown__menu {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        box-shadow: 0 18px 28px rgba(148, 163, 184, 0.25);
+      }
+      .player-dropdown__menu li a {
         color: #2563eb;
         background: rgba(37, 99, 235, 0.12);
       }
@@ -325,12 +503,25 @@ function buildHtml(entries) {
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
   <script>
     const playlist = ${playlistJson};
-    const players = ${JSON.stringify(PLAYERS)};
+    const players = ${playersJson};
+    const defaultPlayer = players.find(player => player.isDefault) || players[0] || null;
     const playlistContainer = document.getElementById("playlist");
     const searchInput = document.getElementById("search");
     const groupFilter = document.getElementById("group");
 
-    const groups = Array.from(new Set(playlist.map(item => item.attributes["group-title"]).filter(Boolean))).sort();
+    function getAttributes(item) {
+      return item && typeof item === "object" && item.attributes && typeof item.attributes === "object"
+        ? item.attributes
+        : {};
+    }
+
+    const groups = Array.from(
+      new Set(
+        playlist
+          .map(item => getAttributes(item)["group-title"])
+          .filter(Boolean)
+      )
+    ).sort();
     for (const group of groups) {
       const option = document.createElement("option");
       option.value = group;
@@ -338,30 +529,161 @@ function buildHtml(entries) {
       groupFilter.appendChild(option);
     }
 
-    function buildPlayerUrl(player, url) {
+    function extractInfoHash(url) {
+      if (!url) {
+        return "";
+      }
+
+      if (url.startsWith("acestream://")) {
+        return url.slice("acestream://".length);
+      }
+
+      const magnetPrefix = "magnet:?xt=urn:btih:";
+      if (url.startsWith(magnetPrefix)) {
+        const hashSection = url.slice(magnetPrefix.length);
+        const endIndex = hashSection.indexOf("&");
+        return endIndex === -1
+          ? hashSection
+          : hashSection.slice(0, endIndex);
+      }
+
+      return "";
+    }
+
+    function buildPlayerUrl(player, item) {
+      const url = item.url;
+      const infohash = extractInfoHash(url);
+      const title = item.title || "";
+
       if (player.type === "acestream") {
         if (url.startsWith("acestream://")) {
           return url;
         }
         if (url.startsWith("magnet:?xt=urn:btih:")) {
-          const hash = url.split("magnet:?xt=urn:btih:")[1];
-          return "acestream://" + hash;
+          return infohash ? "acestream://" + infohash : url;
         }
         return url;
       }
 
       if (player.type === "template" && player.template) {
         const encoded = encodeURIComponent(url);
+        const encodedTitle = encodeURIComponent(title);
+        const encodedInfoHash = encodeURIComponent(infohash);
         let result = player.template;
         result = result.split("{{url}}").join(encoded);
         result = result.split("{{url_raw}}").join(url);
+        result = result.split("{{infohash}}").join(infohash);
+        result = result.split("{{infohash_encoded}}").join(encodedInfoHash);
+        result = result.split("{{title}}").join(title);
+        result = result.split("{{title_encoded}}").join(encodedTitle);
         return result;
       }
 
       return url;
     }
 
+    let activeDropdown = null;
+
+    function closeActiveDropdown() {
+      if (!activeDropdown) {
+        return;
+      }
+      const toggle = activeDropdown.querySelector(".player-dropdown__toggle");
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+      }
+      activeDropdown.classList.remove("is-open");
+      activeDropdown = null;
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!activeDropdown) {
+        return;
+      }
+      if (activeDropdown.contains(event.target)) {
+        return;
+      }
+      closeActiveDropdown();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeActiveDropdown();
+      }
+    });
+
+    function createPlayerDropdown(item, index) {
+      const dropdown = document.createElement("div");
+      dropdown.className = "player-dropdown";
+
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "player-dropdown__toggle secondary";
+      toggle.textContent = "Seleccionar reproductor";
+      toggle.setAttribute("aria-haspopup", "true");
+      const arrow = document.createElement("span");
+      arrow.className = "player-dropdown__arrow";
+      toggle.appendChild(arrow);
+
+      const menu = document.createElement("ul");
+      menu.className = "player-dropdown__menu";
+      const menuId = "player-menu-" + index;
+      menu.id = menuId;
+      menu.setAttribute("role", "menu");
+      toggle.setAttribute("aria-controls", menuId);
+      toggle.setAttribute("aria-expanded", "false");
+
+      toggle.addEventListener("click", () => {
+        const isOpen = dropdown.classList.contains("is-open");
+        if (isOpen) {
+          dropdown.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+          if (activeDropdown === dropdown) {
+            activeDropdown = null;
+          }
+          return;
+        }
+        closeActiveDropdown();
+        dropdown.classList.add("is-open");
+        toggle.setAttribute("aria-expanded", "true");
+        activeDropdown = dropdown;
+      });
+
+      for (const player of players) {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = buildPlayerUrl(player, item);
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        link.setAttribute("role", "menuitem");
+
+        if (player.icon) {
+          const icon = document.createElement("img");
+          icon.src = player.icon;
+          icon.alt = "";
+          icon.width = 18;
+          icon.height = 18;
+          icon.setAttribute("aria-hidden", "true");
+          link.appendChild(icon);
+        }
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = player.label;
+        link.appendChild(labelSpan);
+        link.addEventListener("click", () => {
+          closeActiveDropdown();
+        });
+        li.appendChild(link);
+        menu.appendChild(li);
+      }
+
+      dropdown.appendChild(toggle);
+      dropdown.appendChild(menu);
+      return dropdown;
+    }
+
     function render(list) {
+      closeActiveDropdown();
       playlistContainer.innerHTML = "";
       if (!list.length) {
         const empty = document.createElement("p");
@@ -370,7 +692,7 @@ function buildHtml(entries) {
         return;
       }
 
-      for (const item of list) {
+      list.forEach((item, index) => {
         const card = document.createElement("article");
         card.className = "card";
         card.setAttribute("role", "listitem");
@@ -381,14 +703,16 @@ function buildHtml(entries) {
 
         const meta = document.createElement("div");
         meta.className = "meta";
-        if (item.attributes["group-title"]) {
+        const attributes = getAttributes(item);
+
+        if (attributes["group-title"]) {
           const badge = document.createElement("span");
-          badge.textContent = item.attributes["group-title"];
+          badge.textContent = attributes["group-title"];
           meta.appendChild(badge);
         }
-        if (item.attributes["tvg-id"]) {
+        if (attributes["tvg-id"]) {
           const badge = document.createElement("span");
-          badge.textContent = "ID: " + item.attributes["tvg-id"];
+          badge.textContent = "ID: " + attributes["tvg-id"];
           meta.appendChild(badge);
         }
         card.appendChild(meta);
@@ -396,35 +720,26 @@ function buildHtml(entries) {
         const actions = document.createElement("div");
         actions.className = "actions";
 
-        const button = document.createElement("a");
-        button.className = "play";
-        button.href = item.url;
-        button.textContent = "Reproducir";
-        button.target = "_blank";
-        button.rel = "noreferrer";
-        actions.appendChild(button);
+        if (defaultPlayer) {
+          const playLink = document.createElement("a");
+          playLink.className = "play";
+          playLink.href = buildPlayerUrl(defaultPlayer, item);
+          playLink.textContent = "Reproducir";
+          playLink.target = "_blank";
+          playLink.rel = "noreferrer";
+          actions.appendChild(playLink);
+        } else {
+          const fallbackLink = document.createElement("a");
+          fallbackLink.className = "play";
+          fallbackLink.href = item.url;
+          fallbackLink.textContent = "Reproducir";
+          fallbackLink.target = "_blank";
+          fallbackLink.rel = "noreferrer";
+          actions.appendChild(fallbackLink);
+        }
 
-        if (players.length) {
-          const picker = document.createElement("details");
-          picker.className = "player-picker";
-          const summary = document.createElement("summary");
-          summary.textContent = "Seleccionar reproductor";
-          picker.appendChild(summary);
-          const listEl = document.createElement("ul");
-          listEl.className = "player-picker__list";
-
-          for (const player of players) {
-            const li = document.createElement("li");
-            const link = document.createElement("a");
-            link.textContent = player.label;
-            link.href = buildPlayerUrl(player, item.url);
-            link.target = "_blank";
-            link.rel = "noreferrer";
-            li.appendChild(link);
-            listEl.appendChild(li);
-          }
-          picker.appendChild(listEl);
-          actions.appendChild(picker);
+        if (players.length > 1) {
+          actions.appendChild(createPlayerDropdown(item, index));
         }
 
         const copyBtn = document.createElement("button");
@@ -479,7 +794,7 @@ function buildHtml(entries) {
 
         card.appendChild(actions);
         playlistContainer.appendChild(card);
-      }
+      });
     }
 
     function applyFilters() {
@@ -488,9 +803,9 @@ function buildHtml(entries) {
       const filtered = playlist.filter(item => {
         const matchTerm = term
           ? (item.title && item.title.toLowerCase().includes(term)) ||
-            (item.attributes && JSON.stringify(item.attributes).toLowerCase().includes(term))
+            (JSON.stringify(getAttributes(item)).toLowerCase().includes(term))
           : true;
-        const matchGroup = group ? item.attributes["group-title"] === group : true;
+        const matchGroup = group ? getAttributes(item)["group-title"] === group : true;
         return matchTerm && matchGroup;
       });
       render(filtered);
@@ -519,7 +834,8 @@ function main() {
 
   const playlistContent = fs.readFileSync(targetPlaylistPath, "utf8");
   const entries = parseM3U8(playlistContent);
-  const html = buildHtml(entries);
+  const playerPresets = loadPlayerPresets();
+  const html = buildHtml(entries, playerPresets);
 
   fs.writeFileSync(path.join(docsDir, "index.html"), html, "utf8");
   fs.writeFileSync(path.join(docsDir, "playlist.json"), JSON.stringify(entries, null, 2), "utf8");

@@ -56,6 +56,23 @@ Variables de entorno soportadas en el addon:
 
 > Cada vez que edites la M3U8, repite el script y vuelve a subir los cambios para mantener la pagina sincronizada.
 
+### Personalizar la lista de reproductores
+
+- Edita `playlists/player-presets.json` para reflejar los dispositivos y apps reales que tienes instalados.
+- Cada preset acepta los campos:
+  - `id`: identificador unico (sin espacios) para referencias internas.
+  - `label`: el texto que veras en el desplegable.
+  - `type`: actualmente `acestream` (usa el enlace tal cual / convierte magnet a hash) o `template`.
+  - `template`: (solo si `type` es `template`) URL con placeholders disponibles:
+    - `{{url}}` / `{{url_raw}}` - enlace completo codificado / sin codificar.
+    - `{{infohash}}` / `{{infohash_encoded}}` - hash AceStream si el enlace lo incluye.
+    - `{{title}}` / `{{title_encoded}}` - titulo del canal.
+  - `icon` (opcional): ruta o URL a un icono de 18x18px para mostrar junto al nombre.
+- Opcional: crea otros presets en un fichero alternativo y ejecútalo con `PLAYER_PRESETS=mi-archivo.json npm run generate:playlist`.
+- Cuando uses la variable `PLAYER_PRESETS`, la ruta se resuelve respecto a la raiz del repo (puedes pasar rutas absolutas si lo prefieres).
+- El script de PowerShell `scripts/update-playlist.ps1` acepta `-PlayerPresetPath "ruta\a\mis-presets.json"` para automatizar este override.
+- Si el archivo contiene errores o campos faltantes, el generador volvera a los valores por defecto y avisara en consola.
+
 ## Estructura resumida
 
 ```
@@ -69,6 +86,7 @@ scripts/
   generate-playlist-page.js
 playlists/
   playlist.m3u8        # Ultima copia versionada de tu lista
+  player-presets.json  # Ejemplo de configuracion para el selector de reproductor
 docs/
   index.html           # Pagina publica (GitHub Pages)
   playlist.json        # Datos parseados (util para APIs/automatizaciones)
