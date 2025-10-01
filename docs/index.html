@@ -110,38 +110,62 @@
       background: rgba(148, 163, 184, 0.15);
       color: inherit;
     }
-    details.player-picker {
-      background: rgba(15, 23, 42, 0.35);
-      border-radius: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      padding: 0.5rem;
+    .player-dropdown {
+      position: relative;
+      width: 100%;
     }
-    details.player-picker summary {
-      cursor: pointer;
-      list-style: none;
-      font-weight: 600;
-      padding: 0.3rem 0.4rem;
+    .player-dropdown__toggle {
+      width: 100%;
+      justify-content: space-between;
     }
-    details.player-picker summary::-webkit-details-marker {
+    .player-dropdown__arrow {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid currentColor;
+      transition: transform 120ms ease;
+    }
+    .player-dropdown.is-open .player-dropdown__arrow {
+      transform: rotate(180deg);
+    }
+    .player-dropdown__menu {
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      left: 0;
+      right: 0;
       display: none;
-    }
-    .player-picker__list {
-      display: flex;
       flex-direction: column;
       gap: 0.4rem;
-      margin: 0.5rem 0 0;
-      padding: 0;
+      margin: 0;
+      padding: 0.6rem;
       list-style: none;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 18px 28px rgba(15, 23, 42, 0.45);
+      z-index: 10;
     }
-    .player-picker__list a {
+    .player-dropdown.is-open .player-dropdown__menu {
+      display: flex;
+    }
+    .player-dropdown__menu li a {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.5rem 0.6rem;
-      border-radius: 0.55rem;
+      justify-content: space-between;
+      gap: 0.45rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.6rem;
       text-decoration: none;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.12);
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .player-dropdown__menu li a:hover,
+    .player-dropdown__menu li a:focus-visible {
+      background: rgba(56, 189, 248, 0.2);
+      color: #f0f9ff;
     }
     footer {
       font-size: 0.8rem;
@@ -169,7 +193,12 @@
         background: rgba(148, 163, 184, 0.2);
         color: inherit;
       }
-      .player-picker__list a {
+      .player-dropdown__menu {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        box-shadow: 0 18px 28px rgba(148, 163, 184, 0.25);
+      }
+      .player-dropdown__menu li a {
         color: #2563eb;
         background: rgba(37, 99, 235, 0.12);
       }
@@ -179,7 +208,7 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: 2025-10-01T19:25:19.092Z</p>
+    <p>Actualizada: 2025-10-01T20:43:13.001Z</p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group">
@@ -228,7 +257,95 @@
       return url;
     }
 
+    let activeDropdown = null;
+
+    function closeActiveDropdown() {
+      if (!activeDropdown) {
+        return;
+      }
+      const toggle = activeDropdown.querySelector(".player-dropdown__toggle");
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+      }
+      activeDropdown.classList.remove("is-open");
+      activeDropdown = null;
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!activeDropdown) {
+        return;
+      }
+      if (activeDropdown.contains(event.target)) {
+        return;
+      }
+      closeActiveDropdown();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeActiveDropdown();
+      }
+    });
+
+    function createPlayerDropdown(item, index) {
+      const dropdown = document.createElement("div");
+      dropdown.className = "player-dropdown";
+
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "player-dropdown__toggle play";
+      toggle.textContent = "Reproducir";
+      toggle.setAttribute("aria-haspopup", "true");
+      const arrow = document.createElement("span");
+      arrow.className = "player-dropdown__arrow";
+      toggle.appendChild(arrow);
+
+      const menu = document.createElement("ul");
+      menu.className = "player-dropdown__menu";
+      const menuId = "player-menu-" + index;
+      menu.id = menuId;
+      menu.setAttribute("role", "menu");
+      toggle.setAttribute("aria-controls", menuId);
+      toggle.setAttribute("aria-expanded", "false");
+
+      toggle.addEventListener("click", () => {
+        const isOpen = dropdown.classList.contains("is-open");
+        if (isOpen) {
+          dropdown.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+          if (activeDropdown === dropdown) {
+            activeDropdown = null;
+          }
+          return;
+        }
+        closeActiveDropdown();
+        dropdown.classList.add("is-open");
+        toggle.setAttribute("aria-expanded", "true");
+        activeDropdown = dropdown;
+      });
+
+      for (const player of players) {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.textContent = player.label;
+        link.href = buildPlayerUrl(player, item.url);
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        link.setAttribute("role", "menuitem");
+        link.addEventListener("click", () => {
+          closeActiveDropdown();
+        });
+        li.appendChild(link);
+        menu.appendChild(li);
+      }
+
+      dropdown.appendChild(toggle);
+      dropdown.appendChild(menu);
+      return dropdown;
+    }
+
     function render(list) {
+      closeActiveDropdown();
       playlistContainer.innerHTML = "";
       if (!list.length) {
         const empty = document.createElement("p");
@@ -237,7 +354,7 @@
         return;
       }
 
-      for (const item of list) {
+      list.forEach((item, index) => {
         const card = document.createElement("article");
         card.className = "card";
         card.setAttribute("role", "listitem");
@@ -263,35 +380,16 @@
         const actions = document.createElement("div");
         actions.className = "actions";
 
-        const button = document.createElement("a");
-        button.className = "play";
-        button.href = item.url;
-        button.textContent = "Reproducir";
-        button.target = "_blank";
-        button.rel = "noreferrer";
-        actions.appendChild(button);
-
         if (players.length) {
-          const picker = document.createElement("details");
-          picker.className = "player-picker";
-          const summary = document.createElement("summary");
-          summary.textContent = "Seleccionar reproductor";
-          picker.appendChild(summary);
-          const listEl = document.createElement("ul");
-          listEl.className = "player-picker__list";
-
-          for (const player of players) {
-            const li = document.createElement("li");
-            const link = document.createElement("a");
-            link.textContent = player.label;
-            link.href = buildPlayerUrl(player, item.url);
-            link.target = "_blank";
-            link.rel = "noreferrer";
-            li.appendChild(link);
-            listEl.appendChild(li);
-          }
-          picker.appendChild(listEl);
-          actions.appendChild(picker);
+          actions.appendChild(createPlayerDropdown(item, index));
+        } else {
+          const fallbackLink = document.createElement("a");
+          fallbackLink.className = "play";
+          fallbackLink.href = item.url;
+          fallbackLink.textContent = "Reproducir";
+          fallbackLink.target = "_blank";
+          fallbackLink.rel = "noreferrer";
+          actions.appendChild(fallbackLink);
         }
 
         const copyBtn = document.createElement("button");
@@ -346,7 +444,7 @@
 
         card.appendChild(actions);
         playlistContainer.appendChild(card);
-      }
+      });
     }
 
     function applyFilters() {
