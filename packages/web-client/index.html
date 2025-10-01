@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MontanaOpenAiTV — Player</title>
+  <title>YaVale Player</title>
 </head>
 <body>
-  <h1>MontanaOpenAiTV — Player (prototipo)</h1>
+  <h1>YaVale Player (prototipo)</h1>
 
   <label for="streamUrl">URL del stream (m3u8/HLS o MP4):</label>
-  <input id="streamUrl" type="url" placeholder="https://…/playlist.m3u8" style="width:100%;max-width:800px" />
-  <button id="btnPlay">Reproducir aquí</button>
+  <input id="streamUrl" type="url" placeholder="https://tu-servidor/playlist.m3u8" style="width:100%;max-width:800px" />
+  <button id="btnPlay">Reproducir aqui</button>
 
   <div style="margin:1rem 0;">
     <video id="player" playsinline controls style="width:100%;max-width:800px;height:auto;"></video>
   </div>
 
-  <h2>Abrir con…</h2>
+  <h2>Abrir con...</h2>
   <p>Selecciona la app destino (se configuran en <code>js/config.js</code>):</p>
   <div id="openWith">
     <button data-app="safari">Safari</button>
@@ -25,7 +25,7 @@
     <button data-app="kodi">Kodi</button>
   </div>
 
-  <!-- hls.js (para reproducir m3u8 en navegadores que no soportan HLS nativo) -->
+  <!-- hls.js permite reproducir m3u8 en navegadores sin soporte nativo -->
   <script src="https://unpkg.com/hls.js@1.5.8/dist/hls.min.js"></script>
 
   <script src="./js/config.js"></script>

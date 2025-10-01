@@ -7,8 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:web": "node ./scripts/dev-server.js"
+    "dev:web": "node ./scripts/dev-server.js",
+    "dev:addon": "node packages/stremio-addon/index.js",
+    "generate:playlist": "node scripts/generate-playlist-page.js"
   },
   "keywords": [],
   "author": "",

@@ -4,7 +4,7 @@ const { createServer } = require('node:http');
 const { extname, join, resolve } = require('node:path');
 
 const PORT = Number(process.env.PORT || 5173);
-const ROOT = resolve('clients/web');
+const ROOT = resolve('packages/web-client');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -49,5 +49,5 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Servidor estático listo en http://localhost:${PORT}`);
+  console.log(`Servidor estatico listo en http://localhost:${PORT}`);
 });

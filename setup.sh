@@ -1,38 +1,21 @@
 #!/bin/bash
 set -e
 
-echo "🔥 Iniciando configuración de MontanaOpenAiTV..."
+echo "[YaVale] Iniciando configuracion basica..."
 
-# Verificar que npm esté instalado
-if ! command -v npm &> /dev/null; then
-  echo "❌ npm no está instalado. Por favor, instala Node.js y npm antes de continuar."
+if ! command -v npm >/dev/null 2>&1; then
+  echo "[YaVale] npm no esta instalado. Instala Node.js antes de seguir."
   exit 1
 fi
 
-# Paso 1: Instalar dependencias de Node
-if [ -f "addon/package.json" ]; then
-  echo "📦 Instalando dependencias de Node para el addon..."
-  cd addon
-  npm install
-  cd ..
+if [ -f "packages/stremio-addon/package.json" ]; then
+  echo "[YaVale] Instalando dependencias del addon Stremio..."
+  (cd packages/stremio-addon && npm install)
 fi
 
-if [ -f "app/package.json" ]; then
-  echo "📦 Instalando dependencias de Node para la app..."
-  cd app
-  npm install
-  cd ..
-fi
+echo "[YaVale] Contenido de packages/web-client:"
+ls -la packages/web-client || echo "[YaVale] No se encontro packages/web-client"
 
-# Paso 2: Verificar carpeta HTML
-echo "🌐 Contenido de la carpeta html/:"
-ls -la html || echo "⚠️  No se encontró la carpeta html"
+echo "[YaVale] Consulta packages/vpn para configurar WireGuard manualmente."
 
-# Paso 3: Ejecutar configuración de VPN si existe
-if [ -f "vpn/setup.sh" ]; then
-  echo "🔐 Ejecutando configuración de VPN..."
-  chmod +x vpn/setup.sh
-  ./vpn/setup.sh
-fi
-
-echo "✅ Configuración completada con éxito"
+echo "[YaVale] Configuracion finalizada."

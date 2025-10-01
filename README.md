@@ -1,49 +1,84 @@
-# MontanaOpenAiTV 🎬🔥
+# YaVale Monorepo
 
-Plataforma personal para reproducir enlaces AceStream desde iOS, navegador o cualquier dispositivo,
-usando tu propia VPN (WireGuard) y un addon de Stremio personalizado.
+Monorepo personal para centralizar todo el ecosistema Montana/YaVale:
 
-## Funcionalidades
+- **`packages/web-client`** - cliente web estatico (usable como app web o base para Safari/iOS).
+- **`packages/ios-app`** - proyecto Xcode (WebView) para empaquetar el cliente en iPhone/iPad.
+- **`packages/stremio-addon`** - addon Stremio con catalogo AceStream que apunta a tu servidor remoto.
+- **`packages/vpn`** - plantillas y guias para WireGuard (configura tus claves antes de usarlas).
+- **`docs/`** - sitio estatico listo para GitHub Pages con tu lista M3U8 renderizada.
+- **`playlists/`** - copia rastreada de la playlist M3U8 que alimenta la pagina publica.
 
-✅ Reproduce enlaces AceStream desde un input directo (`index.html`)  
-✅ Usa tu propia VPN con WireGuard para acceso remoto seguro  
-✅ Añade catálogos personalizados con tu propio addon de Stremio  
-✅ Acceso multiplataforma (iPhone, Safari, VLC, Infuse...)
+## Requisitos
 
-## Estructura
+- Node.js 18+ (para el addon y los scripts CLI).
+- npm o pnpm (instala dependencias dentro de cada paquete que lo requiera).
+- Xcode (si vas a tocar `packages/ios-app`).
 
-- `app-ios/` → Proyecto HTML/WebView para compilar como app iOS
-- `addon/` → Tu addon personalizado de Stremio (vacío por ahora)
-- `wireguard/` → Configuraciones de cliente y servidor + guía
-- `README.md` → Esta guía
-- `.gitignore`, `LICENSE` → Añadir según tu preferencia
+## Scripts utiles
 
-## Cómo empezar
+En la raiz del repo:
 
-1. Carga `app-ios/index.html` en Safari o compílalo como app con Xcode.
-2. Añade tu ID AceStream y pulsa reproducir.
-3. (Opcional) Conéctate a tu VPN antes con WireGuard (`wireguard/montana-client.conf`)
-4. (Próximamente) Usa el addon de Stremio con tu catálogo personalizado.
+```bash
+# Servidor estatico del cliente web (sirve packages/web-client)
+npm run dev:web
 
-## Configuración inicial
+# Levanta el addon de Stremio en http://localhost:7000
+npm run dev:addon
 
-1. Asegúrate de tener **Node.js** y **npm** instalados en tu sistema.
-2. Ejecuta `./setup.sh` para instalar las dependencias necesarias y mostrar el contenido de la carpeta `html/`.
-3. Si vas a usar la VPN, consulta la guía `vpn/how-to-connect.md` y carga `vpn/montana-client.conf` en tu aplicación WireGuard.
+# Genera/actualiza GitHub Pages desde una playlist M3U8
+npm run generate:playlist -- "C:\\Users\\anton\\Documents\\playlist.m3u8"
+```
 
-## Uso
+> El flag `--` permite pasar la ruta como primer argumento. Si omites la ruta, usara `playlists/playlist.m3u8`.
 
-1. Abre `index.html` o la aplicación iOS generada.
-2. Introduce tu identificador AceStream y pulsa reproducir.
-3. Con la VPN activa podrás acceder a tu servidor AceStream como si estuvieras en tu red local.
+Dentro de `packages/stremio-addon/` instala dependencias la primera vez:
+
+```bash
+cd packages/stremio-addon
+npm install
+```
+
+Variables de entorno soportadas en el addon:
+
+- `ACESTREAM_BASE_URL` - URL base de tu servidor AceStream (`http://mi-dominio:6878`).
+- `ACESTREAM_STREAM_PATH` - ruta del endpoint (`/ace/getstream?id=` por defecto).
+- `PORT` - puerto HTTP (7000 por defecto).
+
+## Como publicar la playlist en GitHub Pages
+
+1. Exporta o actualiza tu lista en `C:\Users\anton\Documents\playlist.m3u8` (o la ruta que prefieras).
+2. Ejecuta `npm run generate:playlist -- "ruta/a/tu/playlist.m3u8"`.
+   - El script copia el fichero a `playlists/playlist.m3u8`.
+   - Renderiza `docs/index.html` + `docs/playlist.json` con un grid filtrable de canales.
+3. Haz commit y push. En GitHub, configura **Settings -> Pages -> Source: `main` / carpeta `/docs`**.
+4. Tu pagina quedara disponible en `https://<tu-usuario>.github.io/<repo>/` con un buscador y botones de copia.
+
+> Cada vez que edites la M3U8, repite el script y vuelve a subir los cambios para mantener la pagina sincronizada.
+
+## Estructura resumida
+
+```
+packages/
+  ios-app/             # Proyecto Xcode (App WebView)
+  stremio-addon/       # Addon Stremio (Node.js)
+  web-client/          # HTML/JS estatico del reproductor web
+  vpn/                 # Plantillas y guias WireGuard
+scripts/
+  dev-server.js        # Servidor estatico para el cliente web
+  generate-playlist-page.js
+playlists/
+  playlist.m3u8        # Ultima copia versionada de tu lista
+docs/
+  index.html           # Pagina publica (GitHub Pages)
+  playlist.json        # Datos parseados (util para APIs/automatizaciones)
+```
+
+## Proximos pasos recomendados
+
+- Anadir scripts npm que ejecuten `npm install` recursivo (workspaces) si el monorepo crece.
+- Automatizar la actualizacion de la playlist con GitHub Actions (subida cada vez que hagas push).
+- Integrar autenticacion o proteccion en el addon si lo expones publicamente.
 
 ---
-Proyecto iniciado por @M264921 con ❤️ y ayudita de ChatGPT.
-
-## Archivos de grandes dimensiones
-
-El archivo `MontanaOpenAiTV_Repo.zip` contenía una copia del repositorio para
-distribución rápida. Ya no es necesario para ejecutar el proyecto y se ha
-eliminado del código fuente. En caso de requerirse, puede alojarse en la
-sección de _Releases_ en GitHub en lugar de almacenarse dentro del
-repositorio.
+Proyecto iniciado por @M264921 y adoptado como monorepo YaVale. Disfruta tus streams.

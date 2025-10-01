@@ -1,23 +1,26 @@
-# macOS and Xcode
+# macOS y Xcode
 .DS_Store
 build/
 DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcuserstate
-
-# Xcode project user data
-*.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 
 # Swift Package Manager
 Packages/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 
+# Monorepo packages
+!packages/
+!packages/**
+
 # Node
 node_modules/
-addon/package-lock.json
+packages/*/node_modules/
+npm-debug.log*
 
+# Archivos sensibles
 montana-client.conf
 
-# Avoid committing packaged archives
+# Evitar subir archivos empaquetados
 MontanaOpenAiTV_Repo.zip

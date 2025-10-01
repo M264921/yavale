@@ -1,0 +1,25 @@
+{
+    "metas": [
+        {
+            "id": "acestream:de88ed8716612d9c548df63a168fbdd96843dd20",
+            "type": "movie",
+            "name": "MOVISTAR ACCION FHD --> NEW ERA",
+            "poster": "https://i.ibb.co/JWpf4FcM/clasicos.png",
+            "description": "Canal en directo vía AceStream. Servidor remoto MontanaTV"
+        },
+        {
+            "id": "acestream:62b6cdc347e9b5f5aff089055365805e4d20d41e",
+            "type": "movie",
+            "name": "MOVISTAR CLASICOS FHD --> NEW ERA",
+            "poster": "https://i.ibb.co/JWpf4FcM/clasicos.png",
+            "description": "Canal en directo vía AceStream. Servidor remoto MontanaTV"
+        },
+        {
+            "id": "acestream:0f771c30336a0506c74f4aa86762edcb94d21fac",
+            "type": "movie",
+            "name": "MOVISTAR DEPORTES FHD --> NEW ERA",
+            "poster": "https://i.ibb.co/JWpf4FcM/clasicos.png",
+            "description": "Canal en directo vía AceStream. Servidor remoto MontanaTV"
+        }
+    ]
+}
