@@ -2,7 +2,8 @@ param(
   [string]$PlaylistPath = "C:\\Users\\anton\\Documents\\playlist.m3u8",
   [switch]$AutoCommit,
   [string]$CommitMessage = "chore: update playlist",
-  [switch]$Push
+  [switch]$Push,
+  [string]$PlayerPresetPath
 )
 
 $repoRoot = (Resolve-Path "$PSScriptRoot/..\").Path
@@ -15,10 +16,21 @@ if (-not (Test-Path $PlaylistPath)) {
 
 Write-Host "[update-playlist] Generando pagina desde:" $PlaylistPath -ForegroundColor Cyan
 
+if ($PlayerPresetPath) {
+  Write-Host "[update-playlist] Usando presets personalizados:" $PlayerPresetPath -ForegroundColor Cyan
+  $env:PLAYER_PRESETS = $PlayerPresetPath
+}
+
 npm run generate:playlist -- "$PlaylistPath"
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "[update-playlist] npm run fallo (codigo $LASTEXITCODE)." -ForegroundColor Red
-  exit $LASTEXITCODE
+$exitCode = $LASTEXITCODE
+
+if ($PlayerPresetPath) {
+  Remove-Item Env:PLAYER_PRESETS -ErrorAction SilentlyContinue
+}
+
+if ($exitCode -ne 0) {
+  Write-Host "[update-playlist] npm run fallo (codigo $exitCode)." -ForegroundColor Red
+  exit $exitCode
 }
 
 if ($AutoCommit) {
