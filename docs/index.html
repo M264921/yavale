@@ -153,7 +153,11 @@
     .player-dropdown__menu li a {
       display: inline-flex;
       align-items: center;
+      codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-7hg3wi
       justify-content: flex-start;
+
+      justify-content: space-between;
+
       gap: 0.45rem;
       padding: 0.55rem 0.7rem;
       border-radius: 0.6rem;
@@ -162,6 +166,7 @@
       background: rgba(56, 189, 248, 0.12);
       transition: background 120ms ease, color 120ms ease;
     }
+codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-7hg3wi
     .player-dropdown__menu li a img {
       width: 18px;
       height: 18px;
@@ -171,6 +176,7 @@
     .player-dropdown__menu li a span {
       flex: 1;
     }
+
     .player-dropdown__menu li a:hover,
     .player-dropdown__menu li a:focus-visible {
       background: rgba(56, 189, 248, 0.2);
@@ -217,7 +223,9 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
+codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-7hg3wi
     <p>Actualizada: 2025-10-01T21:01:57.300Z</p>
+
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group">
@@ -366,6 +374,7 @@
       for (const player of players) {
         const li = document.createElement("li");
         const link = document.createElement("a");
+codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-7hg3wi
         link.href = buildPlayerUrl(player, item);
         link.target = "_blank";
         link.rel = "noreferrer";
@@ -384,6 +393,7 @@
         const labelSpan = document.createElement("span");
         labelSpan.textContent = player.label;
         link.appendChild(labelSpan);
+
         link.addEventListener("click", () => {
           closeActiveDropdown();
         });

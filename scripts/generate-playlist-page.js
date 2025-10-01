@@ -405,24 +405,30 @@ function buildHtml(entries, playerPresets) {
     .player-dropdown__menu li a {
       display: inline-flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: 0.45rem;
-      padding: 0.55rem 0.7rem;
-      border-radius: 0.6rem;
-      text-decoration: none;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      transition: background 120ms ease, color 120ms ease;
-    }
-    .player-dropdown__menu li a img {
-      width: 18px;
-      height: 18px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.6));
-    }
-    .player-dropdown__menu li a span {
-      flex: 1;
-    }
+ .player-dropdown__menu li {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between; /* resuelto */
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.6rem;
+  text-decoration: none;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.player-dropdown__menu li a img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.6));
+}
+
+.player-dropdown__menu li a span {
+  flex: 1;
+}
+ main
     .player-dropdown__menu li a:hover,
     .player-dropdown__menu li a:focus-visible {
       background: rgba(56, 189, 248, 0.2);
@@ -618,24 +624,28 @@ function buildHtml(entries, playerPresets) {
       for (const player of players) {
         const li = document.createElement("li");
         const link = document.createElement("a");
-        link.href = buildPlayerUrl(player, item);
-        link.target = "_blank";
-        link.rel = "noreferrer";
-        link.setAttribute("role", "menuitem");
+link.href = buildPlayerUrl(
+  player,
+  (item && typeof item === "object" && "url" in item) ? item.url : item
+);
+link.target = "_blank";
+link.rel = "noreferrer";
+link.setAttribute("role", "menuitem");
 
-        if (player.icon) {
-          const icon = document.createElement("img");
-          icon.src = player.icon;
-          icon.alt = "";
-          icon.width = 18;
-          icon.height = 18;
-          icon.setAttribute("aria-hidden", "true");
-          link.appendChild(icon);
-        }
+if (player.icon) {
+  const icon = document.createElement("img");
+  icon.src = player.icon;
+  icon.alt = "";
+  icon.width = 18;
+  icon.height = 18;
+  icon.setAttribute("aria-hidden", "true");
+  link.appendChild(icon);
+}
 
-        const labelSpan = document.createElement("span");
-        labelSpan.textContent = player.label;
-        link.appendChild(labelSpan);
+const labelSpan = document.createElement("span");
+labelSpan.textContent = player.label;
+link.appendChild(labelSpan);
+main
         link.addEventListener("click", () => {
           closeActiveDropdown();
         });
