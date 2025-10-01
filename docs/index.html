@@ -125,36 +125,27 @@
     .actions button.share:hover {
       background: rgba(148, 163, 184, 0.25);
     }
-    .player-dropdown {
-      position: relative;
-      width: 100%;
-    }
-    .player-dropdown__toggle {
-      width: 100%;
-      justify-content: space-between;
-    }
+
+    /* Dropdown */
+    .player-dropdown { position: relative; width: 100%; }
+    .player-dropdown__toggle { width: 100%; justify-content: space-between; }
     .player-dropdown__arrow {
-      display: inline-block;
-      width: 0;
-      height: 0;
+      display: inline-block; width: 0; height: 0;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
       border-top: 6px solid currentColor;
       transition: transform 120ms ease;
     }
-    .player-dropdown.is-open .player-dropdown__arrow {
-      transform: rotate(180deg);
-    }
+    .player-dropdown.is-open .player-dropdown__arrow { transform: rotate(180deg); }
+
     .player-dropdown__menu {
       position: absolute;
       top: calc(100% + 0.35rem);
-      left: 0;
-      right: 0;
+      left: 0; right: 0;
       display: none;
       flex-direction: column;
       gap: 0.4rem;
-      margin: 0;
-      padding: 0.6rem;
+      margin: 0; padding: 0.6rem;
       list-style: none;
       border-radius: 0.9rem;
       border: 1px solid rgba(148, 163, 184, 0.35);
@@ -162,13 +153,12 @@
       box-shadow: 0 18px 28px rgba(15, 23, 42, 0.45);
       z-index: 10;
     }
-    .player-dropdown.is-open .player-dropdown__menu {
-      display: flex;
-    }
+    .player-dropdown.is-open .player-dropdown__menu { display: flex; }
+
     .player-dropdown__menu li a {
       display: inline-flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: space-between; /* conflicto resuelto */
       gap: 0.45rem;
       padding: 0.55rem 0.7rem;
       border-radius: 0.6rem;
@@ -178,38 +168,33 @@
       transition: background 120ms ease, color 120ms ease;
     }
     .player-dropdown__menu li a img {
-      width: 18px;
-      height: 18px;
-      object-fit: contain;
+      width: 18px; height: 18px; object-fit: contain;
       filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.6));
     }
-    .player-dropdown__menu li a span {
-      flex: 1;
-    }
+    .player-dropdown__menu li a span { flex: 1; }
+
     .player-dropdown__menu li a:hover,
     .player-dropdown__menu li a:focus-visible {
       background: rgba(56, 189, 248, 0.2);
       color: #f0f9ff;
     }
+
     footer {
       font-size: 0.8rem;
       color: #64748b;
       text-align: center;
       margin-top: auto;
     }
+
     @media (prefers-color-scheme: light) {
-      body {
-        background: #f8fafc;
-        color: #0f172a;
-      }
+      body { background: #f8fafc; color: #0f172a; }
       .card {
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid rgba(148, 163, 184, 0.45);
         box-shadow: 0 15px 25px rgba(100, 116, 139, 0.15);
       }
       .actions a.play {
-        color: white;
-        background: #2563eb;
+        color: white; background: #2563eb;
         box-shadow: 0 12px 20px rgba(37, 99, 235, 0.35);
       }
       .actions button.secondary,
@@ -241,13 +226,22 @@
       </select>
     </div>
   </header>
-  <main id="playlist" role="list">
-  </main>
+  <main id="playlist" role="list"></main>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
+
   <script>
     const playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
-    const players = [{"id":"living-room","label":"Sala de estar (Chromecast)","type":"template","isDefault":false,"template":"acecast://device/living-room/play?infohash={{infohash}}&title={{title_encoded}}"},{"id":"lg-oled65c4","label":"[LG] webOS TV OLED65C4","type":"template","isDefault":false,"template":"acecast://device/lg-oled65c4/play?infohash={{infohash}}&title={{title_encoded}}"},{"id":"aftss","label":"AFTSS (AceCast)","type":"template","isDefault":false,"template":"acecast://device/aftss/play?infohash={{infohash}}&title={{title_encoded}}"},{"id":"ace-player-hd","label":"Ace Player HD","type":"template","isDefault":true,"template":"acestream://{{infohash}}"},{"id":"windows-media-player","label":"Reproductor de Windows Media","type":"template","isDefault":false,"template":"wmplayer.exe?{{url_raw}}"}];
-    const defaultPlayer = players.find(player => player.isDefault) || players[0] || null;
+
+    /* Players: mantenemos isDefault para mostrar botón Reproducir + dropdown */
+    const players = [
+      {"id":"living-room","label":"Sala de estar (Chromecast)","type":"template","isDefault":false,"template":"acecast://device/living-room/play?infohash={{infohash}}&title={{title_encoded}}"},
+      {"id":"lg-oled65c4","label":"[LG] webOS TV OLED65C4","type":"template","isDefault":false,"template":"acecast://device/lg-oled65c4/play?infohash={{infohash}}&title={{title_encoded}}"},
+      {"id":"aftss","label":"AFTSS (AceCast)","type":"template","isDefault":false,"template":"acecast://device/aftss/play?infohash={{infohash}}&title={{title_encoded}}"},
+      {"id":"ace-player-hd","label":"Ace Player HD","type":"template","isDefault":true,"template":"acestream://{{infohash}}"},
+      {"id":"windows-media-player","label":"Reproductor de Windows Media","type":"template","isDefault":false,"template":"wmplayer.exe?{{url_raw}}"}
+    ];
+    const defaultPlayer = players.find(p => p.isDefault) || players[0] || null;
+
     const playlistContainer = document.getElementById("playlist");
     const searchInput = document.getElementById("search");
     const groupFilter = document.getElementById("group");
@@ -259,11 +253,7 @@
     }
 
     const groups = Array.from(
-      new Set(
-        playlist
-          .map(item => getAttributes(item)["group-title"])
-          .filter(Boolean)
-      )
+      new Set(playlist.map(item => getAttributes(item)["group-title"]).filter(Boolean))
     ).sort();
     for (const group of groups) {
       const option = document.createElement("option");
@@ -273,23 +263,14 @@
     }
 
     function extractInfoHash(url) {
-      if (!url) {
-        return "";
-      }
-
-      if (url.startsWith("acestream://")) {
-        return url.slice("acestream://".length);
-      }
-
+      if (!url) return "";
+      if (url.startsWith("acestream://")) return url.slice("acestream://".length);
       const magnetPrefix = "magnet:?xt=urn:btih:";
       if (url.startsWith(magnetPrefix)) {
         const hashSection = url.slice(magnetPrefix.length);
         const endIndex = hashSection.indexOf("&");
-        return endIndex === -1
-          ? hashSection
-          : hashSection.slice(0, endIndex);
+        return endIndex === -1 ? hashSection : hashSection.slice(0, endIndex);
       }
-
       return "";
     }
 
@@ -299,12 +280,8 @@
       const title = item.title || "";
 
       if (player.type === "acestream") {
-        if (url.startsWith("acestream://")) {
-          return url;
-        }
-        if (url.startsWith("magnet:?xt=urn:btih:")) {
-          return infohash ? "acestream://" + infohash : url;
-        }
+        if (url.startsWith("acestream://")) return url;
+        if (url.startsWith("magnet:?xt=urn:btih:")) return infohash ? "acestream://" + infohash : url;
         return url;
       }
 
@@ -326,34 +303,20 @@
     }
 
     let activeDropdown = null;
-
     function closeActiveDropdown() {
-      if (!activeDropdown) {
-        return;
-      }
+      if (!activeDropdown) return;
       const toggle = activeDropdown.querySelector(".player-dropdown__toggle");
-      if (toggle) {
-        toggle.setAttribute("aria-expanded", "false");
-      }
+      if (toggle) toggle.setAttribute("aria-expanded", "false");
       activeDropdown.classList.remove("is-open");
       activeDropdown = null;
     }
 
-    document.addEventListener("click", (event) => {
-      if (!activeDropdown) {
-        return;
-      }
-      if (activeDropdown.contains(event.target)) {
-        return;
-      }
+    document.addEventListener("click", (e) => {
+      if (!activeDropdown) return;
+      if (activeDropdown.contains(e.target)) return;
       closeActiveDropdown();
     });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        closeActiveDropdown();
-      }
-    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeActiveDropdown(); });
 
     function createPlayerDropdown(item, index) {
       const dropdown = document.createElement("div");
@@ -364,6 +327,7 @@
       toggle.className = "player-dropdown__toggle secondary";
       toggle.textContent = "Seleccionar reproductor";
       toggle.setAttribute("aria-haspopup", "true");
+
       const arrow = document.createElement("span");
       arrow.className = "player-dropdown__arrow";
       toggle.appendChild(arrow);
@@ -381,9 +345,7 @@
         if (isOpen) {
           dropdown.classList.remove("is-open");
           toggle.setAttribute("aria-expanded", "false");
-          if (activeDropdown === dropdown) {
-            activeDropdown = null;
-          }
+          if (activeDropdown === dropdown) activeDropdown = null;
           return;
         }
         closeActiveDropdown();
@@ -413,9 +375,8 @@
         const labelSpan = document.createElement("span");
         labelSpan.textContent = player.label;
         link.appendChild(labelSpan);
-        link.addEventListener("click", () => {
-          closeActiveDropdown();
-        });
+
+        link.addEventListener("click", () => { closeActiveDropdown(); });
         li.appendChild(link);
         menu.appendChild(li);
       }
@@ -493,14 +454,10 @@
           try {
             await navigator.clipboard.writeText(item.url);
             copyBtn.textContent = "Copiado";
-            setTimeout(() => {
-              copyBtn.textContent = "Copiar enlace";
-            }, 1500);
-          } catch (error) {
+            setTimeout(() => { copyBtn.textContent = "Copiar enlace"; }, 1500);
+          } catch {
             copyBtn.textContent = "Error";
-            setTimeout(() => {
-              copyBtn.textContent = "Copiar enlace";
-            }, 1500);
+            setTimeout(() => { copyBtn.textContent = "Copiar enlace"; }, 1500);
           }
         });
         actions.appendChild(copyBtn);
@@ -516,20 +473,14 @@
             url: item.url
           };
           if (navigator.share) {
-            try {
-              await navigator.share(shareData);
-              return;
-            } catch (error) {
-              console.warn("Share cancelado", error);
-            }
+            try { await navigator.share(shareData); return; }
+            catch (e) { console.warn("Share cancelado", e); }
           }
           try {
             await navigator.clipboard.writeText(item.url);
             shareBtn.textContent = "Copiado";
-            setTimeout(() => {
-              shareBtn.textContent = "Compartir";
-            }, 1500);
-          } catch (error) {
+            setTimeout(() => { shareBtn.textContent = "Compartir"; }, 1500);
+          } catch {
             alert("No se pudo compartir ni copiar este enlace");
           }
         });
