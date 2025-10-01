@@ -21,7 +21,8 @@
     "id": "ace-player-hd",
     "label": "Ace Player HD",
     "type": "template",
-    "template": "acestream://{{infohash}}"
+    "template": "acestream://{{infohash}}",
+    "isDefault": true
   },
   {
     "id": "windows-media-player",
