@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "2WULUBTL4D.montanaAI.tv.yavale",
+        "paths": [
+          "/yavale",
+          "/yavale/*"
+        ]
+      }
+    ]
+  }
+}

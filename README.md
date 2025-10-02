@@ -9,6 +9,25 @@ Monorepo personal para centralizar todo el ecosistema Montana/YaVale:
 - **`docs/`** - sitio estatico listo para GitHub Pages con tu lista M3U8 renderizada.
 - **`playlists/`** - copia rastreada de la playlist M3U8 que alimenta la pagina publica.
 
+## Enlaces universales entre la app iOS y la web
+
+Si publicas el sitio estatico (`docs/`) en GitHub Pages puedes hacer que los enlaces `https://montanaopenaitv.github.io/yavale/...`
+abran directamente la app nativa en iPhone/iPad.
+
+1. **Dominio asociado**
+   - Xcode ya tiene activada la capacidad *Associated Domains* con el dominio `applinks:montanaopenaitv.github.io` dentro de `packages/ios-app/yavale/APP.entitlements`.
+   - Si usas un dominio personalizado, sustituye la entrada por `applinks:tu-dominio.com` y vuelve a compilar.
+2. **Fichero `apple-app-site-association`**
+   - El repo incluye `docs/apple-app-site-association` y `docs/.well-known/apple-app-site-association` con la configuracion para el bundle `montanaAI.tv.yavale` (Team ID `2WULUBTL4D`).
+   - Ajusta los campos `appID` y `paths` si cambias de identificador o si la web sirve los enlaces desde otra ruta.
+   - En la app, actualiza `DeepLinkConfiguration.allowedHosts` en `ContentView.swift` para que coincida con el dominio que publiques.
+3. **Sincroniza y despliega**
+   - Sube los cambios a GitHub y espera a que GitHub Pages vuelva a publicar el sitio.
+   - La carpeta `docs/` incluye `.nojekyll`, por lo que los JSON se sirven tal cual en cuanto el despliegue termine (suele tardar 1-2 minutos).
+   - Verifica en un dispositivo real que al abrir `https://montanaopenaitv.github.io/yavale/` en Safari se ofrece abrir la app.
+
+> El fichero `.nojekyll` dentro de `docs/` garantiza que GitHub Pages sirva los JSON tal cual.
+
 ## Requisitos
 
 - Node.js 18+ (para el addon y los scripts CLI).
