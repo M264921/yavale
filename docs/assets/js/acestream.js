@@ -1,3 +1,4 @@
+<script>
 (function () {
   const Q = new URLSearchParams(location.search);
   const engineUrl = Q.get('engine') || localStorage.getItem('engineUrl') || 'http://127.0.0.1:6878';
@@ -16,9 +17,43 @@
     return;
   }
 
-  const getId = (aceUrl) => {
-    const parts = (aceUrl || '').split('://');
-    return parts.length > 1 ? parts[1] : parts[0] || '';
+  // Extrae id/infohash desde diversas formas: acestream://, magnet, query params o path.
+  const extractInfoHash = (u) => {
+    const url = (u || '').trim();
+    if (!url) return '';
+
+    const lower = url.toLowerCase();
+    if (lower.startsWith('acestream://')) return url.slice('acestream://'.length);
+
+    const magnetPrefix = 'magnet:?xt=urn:btih:';
+    if (lower.startsWith(magnetPrefix)) {
+      const rest = url.slice(magnetPrefix.length);
+      const amp = rest.indexOf('&');
+      return amp === -1 ? rest : rest.slice(amp + 0, amp);
+    }
+
+    // Intentar como URL normal
+    try {
+      const parsed = new URL(url);
+      const params = ['id', 'content_id', 'contentId', 'infohash', 'infoHash', 'hash'];
+      for (const k of params) {
+        const v = parsed.searchParams.get(k);
+        if (v) return v;
+      }
+      // /<hash> al final del path
+      const m = parsed.pathname.match(/\/([A-Fa-f0-9]{32,})$/);
+      if (m && m[1]) return m[1];
+    } catch (e) {
+      // puede no ser una URL estándar; seguimos abajo
+    }
+
+    // Fallback por regex en cadena
+    const rx = /[?&](?:id|content_id|contentId|infohash|infoHash|hash)=([^&#]+)/;
+    const fm = url.match(rx);
+    if (fm && fm[1]) {
+      try { return decodeURIComponent(fm[1]); } catch { return fm[1]; }
+    }
+    return '';
   };
 
   const normalizeBase = (base) => (base || '').replace(/\/+$/, '');
@@ -30,11 +65,8 @@
     return `${base}/ace/getstream?id=${cleanId}${tokenParam}`;
   };
 
-  window.__aceEngineConfig = {
-    engineUrl,
-    accessToken,
-    httpUrl,
-  };
+  // Exponer utilidades mínimas para depuración externa
+  window.__aceEngineConfig = { engineUrl, accessToken, httpUrl };
 
   function createButton(label, className) {
     const btn = document.createElement('button');
@@ -57,7 +89,7 @@
   }
 
   function renderItem(item) {
-    const id = getId(item.url);
+    const id = extractInfoHash(item.url);
     const li = document.createElement('li');
     li.className = 'acestream-item';
 
@@ -71,15 +103,13 @@
 
     const openBtn = createButton('Abrir', 'btn open-ace');
     openBtn.addEventListener('click', () => {
-      if (item.url) {
-        location.href = item.url;
-      }
+      if (item.url) location.href = item.url;
     });
 
     const copyBtn = createButton('Copiar', 'btn copy-ace');
     copyBtn.addEventListener('click', async () => {
       try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
+        if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(item.url);
         } else {
           fallbackCopy(item.url);
@@ -110,6 +140,7 @@
     return li;
   }
 
+  // Permitir pasar la ruta del JSON via atributo data-acestream-src en el <script>
   const scriptTag = document.currentScript || document.querySelector('script[data-acestream-src]');
   const dataPath = (scriptTag && scriptTag.getAttribute('data-acestream-src')) || './data/acestream-links.json';
 
@@ -132,3 +163,4 @@
       console.error('[acestream] fetch error', err);
     });
 })();
+</script>
