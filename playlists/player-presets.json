@@ -1,0 +1,62 @@
+[
+  {
+    "id": "living-room",
+    "label": "Sala de estar (Chromecast)",
+    "type": "template",
+    "template": "acecast://device/living-room/play?infohash={{infohash}}&title={{title_encoded}}",
+    "availability": {
+      "platforms": ["desktop", "android"],
+      "http": [
+        {
+          "url": "http://192.168.1.50:8008/setup/eureka_info",
+          "method": "GET",
+          "mode": "no-cors",
+          "timeout": 2000
+        }
+      ]
+    }
+  },
+  {
+    "id": "lg-oled65c4",
+    "label": "[LG] webOS TV OLED65C4",
+    "type": "template",
+    "template": "acecast://device/lg-oled65c4/play?infohash={{infohash}}&title={{title_encoded}}",
+    "availability": {
+      "platforms": ["desktop", "android", "ios"],
+      "http": [
+        "http://lgoled65c4.lan:3000/api/ping",
+        {
+          "url": "http://192.168.1.80:3000/api/ping",
+          "method": "GET",
+          "timeout": 1500,
+          "mode": "no-cors"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aftss",
+    "label": "AFTSS (AceCast)",
+    "type": "template",
+    "template": "acecast://device/aftss/play?infohash={{infohash}}&title={{title_encoded}}",
+    "availability": {
+      "platforms": ["android", "desktop"],
+      "http": [
+        "http://192.168.1.90:6878/server/check"
+      ]
+    }
+  },
+  {
+    "id": "ace-player-hd",
+    "label": "Ace Player HD",
+    "type": "template",
+    "template": "acestream://{{infohash}}",
+    "isDefault": true
+  },
+  {
+    "id": "windows-media-player",
+    "label": "Reproductor de Windows Media",
+    "type": "template",
+    "template": "wmplayer.exe?{{url_raw}}"
+  }
+]
