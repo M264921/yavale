@@ -16,7 +16,21 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: swift build -v
+    - name: Install xcpretty
+      run: sudo gem install xcpretty
+    - name: Build iOS app
+      run: |
+        set -o pipefail
+        xcodebuild \
+          -project packages/ios-app/APP.xcodeproj \
+          -scheme APP \
+          -destination 'platform=iOS Simulator,OS=17.5,name=iPhone 15' \
+          clean build | xcpretty
     - name: Run tests
-      run: swift test -v
+      run: |
+        set -o pipefail
+        xcodebuild \
+          -project packages/ios-app/APP.xcodeproj \
+          -scheme APP \
+          -destination 'platform=iOS Simulator,OS=17.5,name=iPhone 15' \
+          test | xcpretty
