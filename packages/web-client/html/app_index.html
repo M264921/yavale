@@ -1,28 +1,319 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MontanaOpenAiTV</title>
-    <script src="P2P_Search.min.acestream.js"></script>
-    <script src="Magic_Player.acestream.js"></script>
-    <script>
-        function playStream() {
-            const input = document.getElementById('ace_id').value.trim();
-            if (!input) {
-                alert("Introduce un ID de AceStream");
-                return;
-            }
-            const id = input.replace("acestream://", "");
-            const finalUrl = "http://YOUR_DOMAIN:6878/ace/getstream?id=" + id;
-            window.location.href = finalUrl;
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
+    <style>
+        :root {
+            color-scheme: dark light;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        main {
+            width: min(480px, 92vw);
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 32px 28px;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.45);
+        }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 1.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        p.description {
+            margin-top: 0;
+            margin-bottom: 24px;
+            text-align: center;
+            color: #cbd5f5;
+            line-height: 1.4;
+        }
+        form {
+            display: grid;
+            gap: 18px;
+        }
+        label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+        input[type="text"], input[type="url"], input[type="number"] {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.65);
+            color: inherit;
+            font-size: 1rem;
+            padding: 12px 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.2s ease;
+        }
+        input[type="text"]:focus, input[type="url"]:focus, input[type="number"]:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+        }
+        .settings-group {
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            padding: 18px 18px 10px;
+            background: rgba(15, 23, 42, 0.55);
+        }
+        .settings-group h2 {
+            margin: 0 0 12px;
+            font-size: 1.05rem;
+        }
+        .inline-field {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .inline-field label {
+            margin: 0;
+        }
+        .inline-field input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: #0f172a;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .status {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin: 8px 0 0;
+            display: none;
+        }
+        .status.is-visible { display: block; }
+        .status.success { background: rgba(34, 197, 94, 0.15); color: #bbf7d0; border: 1px solid rgba(34, 197, 94, 0.35); }
+        .status.error { background: rgba(248, 113, 113, 0.18); color: #fecaca; border: 1px solid rgba(248, 113, 113, 0.45); }
+        .status.info { background: rgba(56, 189, 248, 0.18); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .status.warning { background: rgba(251, 191, 36, 0.18); color: #fef08a; border: 1px solid rgba(251, 191, 36, 0.4); }
+        small.hint {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: rgba(148, 163, 184, 0.85);
+        }
+    </style>
+    <script>
+        (function () {
+            const SETTINGS_KEY = 'yavale_acestream_settings';
+            const DEFAULT_SETTINGS = { baseUrl: 'http://127.0.0.1:6878', useExternal: false, rememberLastId: true, lastId: '' };
+            const settingsState = loadSettings();
+            const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+            if (isIos && settingsState.useExternal !== true) {
+                settingsState.useExternal = true;
+                persistSettings();
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('ace_form');
+                const aceInput = document.getElementById('ace_id');
+                const baseInput = document.getElementById('ace_base');
+                const externalCheckbox = document.getElementById('ace_external');
+                const rememberCheckbox = document.getElementById('ace_remember');
+                const statusNode = document.getElementById('status');
+                const iosHint = document.getElementById('ios-hint');
+
+                if (iosHint && isIos) {
+                    iosHint.style.display = 'block';
+                }
+
+                baseInput.value = settingsState.baseUrl;
+                externalCheckbox.checked = settingsState.useExternal;
+                rememberCheckbox.checked = settingsState.rememberLastId;
+                if (settingsState.rememberLastId && settingsState.lastId) {
+                    aceInput.value = settingsState.lastId;
+                }
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    playStream(aceInput, statusNode);
+                });
+
+                baseInput.addEventListener('change', function () {
+                    updateSettings({ baseUrl: baseInput.value });
+                    showStatus(statusNode, 'Base AceStream actualizada.', 'success');
+                });
+
+                externalCheckbox.addEventListener('change', function () {
+                    updateSettings({ useExternal: externalCheckbox.checked });
+                    showStatus(statusNode, 'Preferencia de reproducción guardada.', 'success');
+                });
+
+                rememberCheckbox.addEventListener('change', function () {
+                    updateSettings({ rememberLastId: rememberCheckbox.checked });
+                    if (!rememberCheckbox.checked) {
+                        updateSettings({ lastId: '' });
+                    }
+                    showStatus(statusNode, 'Ajuste de memoria actualizado.', 'success');
+                });
+            });
+
+            function playStream(aceInput, statusNode) {
+                const rawValue = (aceInput.value || '').trim();
+                const hash = extractInfoHash(rawValue);
+                if (!hash) {
+                    showStatus(statusNode, 'Introduce un ID, hash o enlace válido de AceStream.', 'error');
+                    aceInput.focus();
+                    return;
+                }
+
+                if (settingsState.rememberLastId) {
+                    updateSettings({ lastId: hash });
+                }
+
+                const targetUrl = settingsState.useExternal
+                    ? 'acestream://' + encodeURIComponent(hash)
+                    : buildEngineUrl(settingsState.baseUrl, hash);
+
+                if (settingsState.useExternal) {
+                    showStatus(statusNode, 'Intentando abrir la app oficial de AceStream…', 'info');
+                } else {
+                    showStatus(statusNode, 'Solicitando stream desde ' + settingsState.baseUrl + ' …', 'info');
+                }
+
+                window.location.href = targetUrl;
+            }
+
+            function buildEngineUrl(baseUrl, hash) {
+                const normalized = normalizeBaseUrl(baseUrl || DEFAULT_SETTINGS.baseUrl);
+                return normalized + '/ace/getstream?id=' + encodeURIComponent(hash);
+            }
+
+            function extractInfoHash(value) {
+                if (!value) { return ''; }
+                const cleaned = value.trim();
+                if (!cleaned) { return ''; }
+                if (cleaned.startsWith('acestream://')) {
+                    return cleaned.slice('acestream://'.length);
+                }
+                const urlMatch = cleaned.match(/[0-9a-f]{40}/i);
+                return urlMatch ? urlMatch[0] : '';
+            }
+
+            function normalizeBaseUrl(url) {
+                if (!url) { return DEFAULT_SETTINGS.baseUrl; }
+                let normalized = url.trim();
+                if (!/^https?:\/\//i.test(normalized)) {
+                    normalized = 'http://' + normalized;
+                }
+                if (normalized.endsWith('/')) {
+                    normalized = normalized.slice(0, -1);
+                }
+                return normalized;
+            }
+
+            function loadSettings() {
+                try {
+                    const stored = window.localStorage.getItem(SETTINGS_KEY);
+                    if (!stored) {
+                        return Object.assign({}, DEFAULT_SETTINGS);
+                    }
+                    const parsed = JSON.parse(stored);
+                    return Object.assign({}, DEFAULT_SETTINGS, parsed, {
+                        baseUrl: normalizeBaseUrl(parsed.baseUrl || DEFAULT_SETTINGS.baseUrl)
+                    });
+                } catch (error) {
+                    console.warn('No se pudieron cargar los ajustes locales', error);
+                    return Object.assign({}, DEFAULT_SETTINGS);
+                }
+            }
+
+            function updateSettings(patch) {
+                if (!patch || typeof patch !== 'object') { return; }
+                const next = Object.assign({}, settingsState, patch);
+                next.baseUrl = normalizeBaseUrl(next.baseUrl);
+                Object.assign(settingsState, next);
+                persistSettings();
+            }
+
+            function persistSettings() {
+                try {
+                    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsState));
+                } catch (error) {
+                    console.warn('No se pudo guardar la configuración', error);
+                }
+            }
+
+            function showStatus(node, message, tone) {
+                if (!node) { return; }
+                node.textContent = message;
+                node.className = 'status is-visible ' + (tone || 'info');
+            }
+
+            window.playStream = function () {
+                const form = document.getElementById('ace_form');
+                const aceInput = document.getElementById('ace_id');
+                const statusNode = document.getElementById('status');
+                if (!aceInput) { return; }
+                playStream(aceInput, statusNode);
+            };
+        })();
     </script>
 </head>
 <body>
-    <h1>MontanaOpenAiTV</h1>
-    <p>Introduce el enlace AceStream:</p>
-    <input type="text" id="ace_id" placeholder="acestream://...">
-    <button onclick="playStream()">Reproducir</button>
+    <main>
+        <h1>MontanaOpenAiTV</h1>
+        <p class="description">Reproduce enlaces AceStream usando tu motor local o la aplicación oficial en iOS.</p>
+        <form id="ace_form">
+            <div>
+                <label for="ace_id">Enlace, ID o hash de AceStream</label>
+                <input type="text" id="ace_id" name="ace_id" placeholder="acestream://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" required>
+            </div>
+            <div class="settings-group">
+                <h2>Configuración</h2>
+                <div>
+                    <label for="ace_base">Motor AceStream (IP o URL)</label>
+                    <input type="text" id="ace_base" name="ace_base" placeholder="http://127.0.0.1:6878">
+                    <small class="hint">Equivalente a los ajustes <code>ip_addr</code> y <code>ace_port</code> de Horus.</small>
+                </div>
+                <div class="inline-field">
+                    <input type="checkbox" id="ace_external" name="ace_external">
+                    <label for="ace_external">Usar app externa de AceStream (recomendado en iOS).</label>
+                </div>
+                <div class="inline-field">
+                    <input type="checkbox" id="ace_remember" name="ace_remember" checked>
+                    <label for="ace_remember">Recordar el último ID introducido.</label>
+                </div>
+                <small id="ios-hint" class="hint" style="display:none;">Detectamos iOS: abriremos los enlaces con la app AceStream instalada en el dispositivo.</small>
+            </div>
+            <button type="submit">Reproducir</button>
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+        </form>
+    </main>
 </body>
 </html>
