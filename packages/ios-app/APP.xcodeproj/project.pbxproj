@@ -50,6 +50,7 @@
 		5B6DB9B12E27389300D83B17 /* yavaleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = yavaleUITests.swift; sourceTree = "<group>"; };
 		5B6DB9B32E27389300D83B17 /* yavaleUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = yavaleUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		5B7B9EF32E279E2200184466 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		5B8A40A92E2AFA6C00D83B17 /* APP.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = APP.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +104,7 @@
 			children = (
 				5B6DB9912E27388D00D83B17 /* yavaleApp.swift */,
 				5B6DB9932E27388D00D83B17 /* ContentView.swift */,
+				5B8A40A92E2AFA6C00D83B17 /* APP.entitlements */,
 				5B6DB9952E27389200D83B17 /* Assets.xcassets */,
 				5B6DB99A2E27389200D83B17 /* Persistence.swift */,
 				5B6DB99C2E27389200D83B17 /* yavale.xcdatamodeld */,
@@ -204,6 +206,11 @@
 				TargetAttributes = {
 					5B6DB98D2E27388D00D83B17 = {
 						CreatedOnToolsVersion = 14.2;
+						SystemCapabilities = {
+							com.apple.Safari.allowAssociatedDomains = {
+								enabled = 1;
+							};
+						};
 					};
 					5B6DB9A22E27389300D83B17 = {
 						CreatedOnToolsVersion = 14.2;
@@ -426,6 +433,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = yavale/APP.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"yavale/Preview Content\"";
@@ -455,6 +463,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = yavale/APP.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"yavale/Preview Content\"";
