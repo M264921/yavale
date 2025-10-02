@@ -111,7 +111,7 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: 2025-10-02T10:50:48.141Z</p>
+    <p>Actualizada: 2025-10-02T11:08:44.933Z</p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group"><option value="">Todos los grupos</option></select>
@@ -526,7 +526,7 @@
           accessToken: String(formData.get("accessToken") || "").trim()
         };
         saveSettings(state.settings);
-        setStatus("Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.", "success");
+        setStatus('Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.', "success");
         settingsForm.setAttribute("hidden", "true");
         if (settingsToggle) settingsToggle.setAttribute("aria-expanded", "false");
       });
@@ -869,7 +869,7 @@
     async function fetchEnginePlayers(settings) {
       const base = String(settings.engineUrl || "").trim();
       if (!base) return [];
-      const cleanBase = base.replace(//+$/, "");
+      const cleanBase = base.replace(/\/+$/, "");
       const params = new URLSearchParams();
       params.set("method", "get_available_players");
       params.set("format", "json");

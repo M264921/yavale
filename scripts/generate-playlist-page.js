@@ -282,7 +282,6 @@ function sanitizePlayerPreset(entry, index, presetPath) {
   return preset;
 }
 
-
 function buildHtml(entries, playerPresets) {
   const playlistJson = JSON.stringify(entries).replace(/</g, "\u003C");
   const playersJson = JSON.stringify(playerPresets).replace(/</g, "\u003C");
@@ -564,6 +563,7 @@ function buildHtml(entries, playerPresets) {
       if (player.type === "template" && player.template) {
         const encoded = encodeURIComponent(url);
         const encodedTitle = encodeURIComponent(title);
+        theEncodedInfo = encodeURIComponent(infohash); // old alias kept
         const encodedInfoHash = encodeURIComponent(infohash);
         return player.template
           .split("{{url}}").join(encoded)
@@ -816,7 +816,7 @@ function buildHtml(entries, playerPresets) {
           accessToken: String(formData.get("accessToken") || "").trim()
         };
         saveSettings(state.settings);
-        setStatus("Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.", "success");
+        setStatus('Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.', "success");
         settingsForm.setAttribute("hidden", "true");
         if (settingsToggle) settingsToggle.setAttribute("aria-expanded", "false");
       });
@@ -1260,8 +1260,6 @@ function buildHtml(entries, playerPresets) {
 </body>
 </html>`;
 }
-
-
 
 function main() {
   ensureDirs();
