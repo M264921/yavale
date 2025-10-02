@@ -282,7 +282,6 @@ function sanitizePlayerPreset(entry, index, presetPath) {
   return preset;
 }
 
-
 function buildHtml(entries, playerPresets) {
   const playlistJson = JSON.stringify(entries).replace(/</g, "\u003C");
   const playersJson = JSON.stringify(playerPresets).replace(/</g, "\u003C");
@@ -562,12 +561,12 @@ function buildHtml(entries, playerPresets) {
           const value = parsed.searchParams.get(key);
           if (value) return value;
         }
-        const pathMatch = parsed.pathname.match(/\\/([A-Fa-f0-9]{32,})$/);
+        const pathMatch = parsed.pathname.match(/\/([A-Fa-f0-9]{32,})$/);
         if (pathMatch && pathMatch[1]) {
           return pathMatch[1];
         }
       } catch (error) {
-        // Ignored: the URL might be a custom scheme we handle below.
+        // Ignorado: puede no ser una URL estándar.
       }
 
       const fallbackMatch = trimmed.match(/[?&](?:id|content_id|contentId|infohash|infoHash|hash)=([^&#]+)/);
@@ -590,16 +589,11 @@ function buildHtml(entries, playerPresets) {
       if (player.type === "acestream") {
         const engineUrl = state.settings && state.settings.engineUrl ? state.settings.engineUrl.trim() : "";
         if (engineUrl && infohash) {
-          const sanitizedBase = engineUrl.replace(/\\\/+$, "");
+          const sanitizedBase = engineUrl.replace(/\/+$/, "");
           return sanitizedBase + "/ace/getstream?id=" + encodeURIComponent(infohash);
         }
         if (url.indexOf("acestream://") === 0) return url;
         if (url.indexOf("magnet:?xt=urn:btih:") === 0) return infohash ? "acestream://" + infohash : url;
-        if (engineUrl) {
-          const sanitizedBase = engineUrl.replace(/\\\/+$, "");
-          const encodedUrl = encodeURIComponent(url);
-          return sanitizedBase + "/ace/getstream?id=" + encodedUrl;
-        }
         return url;
       }
 
@@ -999,19 +993,6 @@ function buildHtml(entries, playerPresets) {
       return false;
     }
 
-    async function resolveAvailablePlayers() {
-      const all = getAllPlayers();
-      const available = [];
-      for (const player of all) {
-        const availability = player && typeof player === "object" ? player.availability : null;
-        if (!matchesPlatforms(availability)) continue;
-        if (!matchesHostname(availability)) continue;
-        if (await matchesHttpAvailability(availability)) available.push(player);
-      }
-      updateAvailablePlayersState(available);
-      applyFilters();
-    }
-
     function normalizeDynamicAvailability(entry) {
       if (!entry || typeof entry !== "object") return null;
       const availability = {};
@@ -1076,23 +1057,23 @@ function buildHtml(entries, playerPresets) {
     function normalizeEngineTemplate(template) {
       let normalized = String(template);
       const replacements = [
-        [/\%\((?:content_id|infohash)\)s/gi, "{{infohash}}"],
-        [/\%\((?:escaped_content_id|escaped_infohash)\)s/gi, "{{infohash_encoded}}"],
-        [/\%\((?:title)\)s/gi, "{{title}}"],
-        [/\%\((?:escaped_title)\)s/gi, "{{title_encoded}}"],
-        [/\%\((?:url)\)s/gi, "{{url}}"],
-        [/\%\((?:escaped_url)\)s/gi, "{{url}}"],
-        [/\%(?:content_id|infohash)s/gi, "{{infohash}}"],
-        [/\%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
-        [/\%(?:title)s/gi, "{{title}}"],
-        [/\%(?:escaped_title)s/gi, "{{title_encoded}}"],
-        [/\%(?:url)s/gi, "{{url}}"],
-        [/\%(?:escaped_url)s/gi, "{{url}}"],
-        [/\{(?:content_id|infohash)\}/gi, "{{infohash}}"],
-        [/\{(?:escaped_content_id|escaped_infohash)\}/gi, "{{infohash_encoded}}"],
-        [/\{(?:title)\}/gi, "{{title}}"],
-        [/\{(?:escaped_title)\}/gi, "{{title_encoded}}"],
-        [/\{(?:url|escaped_url)\}/gi, "{{url}}"]
+        [/%((?:content_id|infohash))s/gi, "{{infohash}}"],
+        [/%((?:escaped_content_id|escaped_infohash))s/gi, "{{infohash_encoded}}"],
+        [/%((?:title))s/gi, "{{title}}"],
+        [/%((?:escaped_title))s/gi, "{{title_encoded}}"],
+        [/%((?:url))s/gi, "{{url}}"],
+        [/%((?:escaped_url))s/gi, "{{url}}"],
+        [/%(?:content_id|infohash)s/gi, "{{infohash}}"],
+        [/%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
+        [/%(?:title)s/gi, "{{title}}"],
+        [/%(?:escaped_title)s/gi, "{{title_encoded}}"],
+        [/%(?:url)s/gi, "{{url}}"],
+        [/%(?:escaped_url)s/gi, "{{url}}"],
+        [/{(?:content_id|infohash)}/gi, "{{infohash}}"],
+        [/{(?:escaped_content_id|escaped_infohash)}/gi, "{{infohash_encoded}}"],
+        [/{(?:title)}/gi, "{{title}}"],
+        [/{(?:escaped_title)}/gi, "{{title_encoded}}"],
+        [/{(?:url|escaped_url)}/gi, "{{url}}"]
       ];
       for (const replacement of replacements) {
         normalized = normalized.replace(replacement[0], replacement[1]);
@@ -1203,7 +1184,7 @@ function buildHtml(entries, playerPresets) {
     async function fetchEnginePlayers(settings) {
       const base = String(settings.engineUrl || "").trim();
       if (!base) return [];
-      const cleanBase = base.replace(/\\\/+$, "");
+      const cleanBase = base.replace(/\/+$/, "");
       const params = new URLSearchParams();
       params.set("method", "get_available_players");
       params.set("format", "json");
@@ -1304,8 +1285,6 @@ function buildHtml(entries, playerPresets) {
 </body>
 </html>`;
 }
-
-
 
 function main() {
   ensureDirs();

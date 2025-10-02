@@ -277,7 +277,7 @@
           return pathMatch[1];
         }
       } catch (error) {
-        // Ignored: the URL might be a custom scheme we handle below.
+        // Ignorado: puede no ser una URL estándar.
       }
 
       const fallbackMatch = trimmed.match(/[?&](?:id|content_id|contentId|infohash|infoHash|hash)=([^&#]+)/);
@@ -300,16 +300,11 @@
       if (player.type === "acestream") {
         const engineUrl = state.settings && state.settings.engineUrl ? state.settings.engineUrl.trim() : "";
         if (engineUrl && infohash) {
-          const sanitizedBase = engineUrl.replace(/\/+$, "");
+          const sanitizedBase = engineUrl.replace(/\/+$/, "");
           return sanitizedBase + "/ace/getstream?id=" + encodeURIComponent(infohash);
         }
         if (url.indexOf("acestream://") === 0) return url;
         if (url.indexOf("magnet:?xt=urn:btih:") === 0) return infohash ? "acestream://" + infohash : url;
-        if (engineUrl) {
-          const sanitizedBase = engineUrl.replace(/\/+$, "");
-          const encodedUrl = encodeURIComponent(url);
-          return sanitizedBase + "/ace/getstream?id=" + encodedUrl;
-        }
         return url;
       }
 
@@ -913,7 +908,7 @@
     async function fetchEnginePlayers(settings) {
       const base = String(settings.engineUrl || "").trim();
       if (!base) return [];
-      const cleanBase = base.replace(/\/+$, "");
+      const cleanBase = base.replace(/\/+$/, "");
       const params = new URLSearchParams();
       params.set("method", "get_available_players");
       params.set("format", "json");
