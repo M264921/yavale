@@ -95,6 +95,9 @@ function parseExtInf(line) {
   return info;
 }
 
+/* =========================
+   Player presets por defecto
+   ========================= */
 const DEFAULT_PLAYER_PRESETS = [
   { id: "acestream-engine", label: "Ace Stream (motor local)", type: "acestream" },
   { id: "vlc", label: "VLC (iOS/macOS)", type: "template", template: "vlc-x-callback://x-callback-url/stream?url={{url}}" },
@@ -104,6 +107,90 @@ const DEFAULT_PLAYER_PRESETS = [
   { id: "acecast", label: "AceCast (seleccionar dispositivo)", type: "template", template: "acecast://play?method=fromHash&infohash={{infohash}}&name={{title_encoded}}" },
   { id: "windows-media-player", label: "Reproductor de Windows Media", type: "template", template: "wmplayer.exe?{{url_raw}}" }
 ];
+
+/* Normaliza el bloque availability de los presets */
+function sanitizeAvailability(entry, presetId, presetPath) {
+  if (!entry || typeof entry !== "object") return null;
+
+  const availability = {};
+
+  if (Array.isArray(entry.platforms)) {
+    const platforms = entry.platforms
+      .map(v => (typeof v === "string" ? v.trim().toLowerCase() : ""))
+      .filter(Boolean);
+    if (platforms.length) availability.platforms = platforms;
+  }
+
+  if (Array.isArray(entry.excludePlatforms)) {
+    const excludePlatforms = entry.excludePlatforms
+      .map(v => (typeof v === "string" ? v.trim().toLowerCase() : ""))
+      .filter(Boolean);
+    if (excludePlatforms.length) availability.excludePlatforms = excludePlatforms;
+  }
+
+  if (Array.isArray(entry.hostnames)) {
+    const hostnames = entry.hostnames
+      .map(v => (typeof v === "string" ? v.trim().toLowerCase() : ""))
+      .filter(Boolean);
+    if (hostnames.length) availability.hostnames = hostnames;
+  }
+
+  if (Array.isArray(entry.http)) {
+    const http = entry.http
+      .map((candidate, index) => {
+        if (typeof candidate === "string") {
+          const trimmed = candidate.trim();
+          return trimmed
+            ? { url: trimmed, method: "HEAD", timeout: 2500, mode: "no-cors" }
+            : null;
+        }
+        if (!candidate || typeof candidate !== "object") {
+          console.warn(
+            `[generate-playlist] Punto de disponibilidad HTTP inválido en ${presetPath} (preset ${presetId}, posición ${index}).`
+          );
+          return null;
+        }
+
+        const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
+        if (!url) {
+          console.warn(
+            `[generate-playlist] Se ignoró un endpoint HTTP sin URL en ${presetPath} (preset ${presetId}, posición ${index}).`
+          );
+          return null;
+        }
+
+        const endpoint = {
+          url,
+          method:
+            typeof candidate.method === "string" && candidate.method.trim().length
+              ? candidate.method.trim().toUpperCase()
+              : "HEAD",
+          timeout:
+            typeof candidate.timeout === "number" && Number.isFinite(candidate.timeout)
+              ? Math.max(500, candidate.timeout)
+              : 2500,
+          mode:
+            typeof candidate.mode === "string" && candidate.mode.trim().length
+              ? candidate.mode.trim()
+              : "no-cors"
+        };
+
+        if (Array.isArray(candidate.expectStatus)) {
+          const expectStatus = candidate.expectStatus
+            .map(v => Number.parseInt(v, 10))
+            .filter(v => Number.isInteger(v) && v >= 100 && v <= 599);
+          if (expectStatus.length) endpoint.expectStatus = expectStatus;
+        }
+
+        return endpoint;
+      })
+      .filter(Boolean);
+
+    if (http.length) availability.http = http;
+  }
+
+  return Object.keys(availability).length ? availability : null;
+}
 
 function resolvePlayerPresetPath() {
   const envPath = process.env.PLAYER_PRESETS
@@ -187,6 +274,11 @@ function sanitizePlayerPreset(entry, index, presetPath) {
 
   if (entry.icon) preset.icon = entry.icon;
 
+  if (entry.availability) {
+    const availability = sanitizeAvailability(entry.availability, id, presetPath);
+    if (availability) preset.availability = availability;
+  }
+
   return preset;
 }
 
@@ -202,51 +294,42 @@ function buildHtml(entries, playerPresets) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Playlist AceStream</title>
   <style>
-    :root {
-      color-scheme: dark light;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+    :root { color-scheme: dark light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     body {
-      margin: 0;
-      background: #0f172a;
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      padding: 1.5rem;
+      margin: 0; background: #0f172a; color: #e2e8f0; min-height: 100vh;
+      display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem;
     }
     header { display: flex; flex-direction: column; gap: 0.75rem; }
     h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.3rem); }
     .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
     input[type="search"] {
       flex: 1 1 250px; padding: 0.65rem 0.9rem; border-radius: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.65); color: inherit;
+      border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.65); color: inherit;
     }
     select {
       padding: 0.65rem 0.9rem; border-radius: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.65); color: inherit;
+      border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.65); color: inherit;
     }
-    main { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+    main { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1.25rem; }
     .card {
       display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; border-radius: 1rem;
-      background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.25);
-      box-shadow: 0 15px 25px rgba(15, 23, 42, 0.25); transition: transform 120ms ease, box-shadow 120ms ease;
+      background: rgba(15,23,42,0.6); border: 1px solid rgba(148,163,184,0.25);
+      box-shadow: 0 15px 25px rgba(15,23,42,0.25); transition: transform 120ms ease, box-shadow 120ms ease;
     }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 18px 28px rgba(15, 23, 42, 0.3); }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 18px 28px rgba(15,23,42,0.3); }
     .card h2 { margin: 0; font-size: 1.05rem; }
     .meta { display: flex; flex-wrap: wrap; gap: 0.4rem; font-size: 0.8rem; color: #94a3b8; }
-    .meta span { padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(148, 163, 184, 0.15); }
-    .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; align-items: stretch; }
+    .meta span { padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(148,163,184,0.15); }
+    .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 0.5rem; align-items: stretch; }
     .actions a, .actions button {
       display: inline-flex; justify-content: center; align-items: center; gap: 0.35rem;
       padding: 0.6rem 0.9rem; border-radius: 0.75rem; border: none; cursor: pointer; font-weight: 600;
       text-decoration: none; transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
     }
-    .actions a.play { color: #0f172a; background: #38bdf8; box-shadow: 0 10px 18px rgba(56, 189, 248, 0.35); }
-    .actions a.play:hover { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(56, 189, 248, 0.4); }
-    .actions button.secondary, .actions button.copy, .actions button.share { background: rgba(148, 163, 184, 0.15); color: inherit; }
-    .actions button.secondary:hover, .actions button.copy:hover, .actions button.share:hover { background: rgba(148, 163, 184, 0.25); }
+    .actions a.play { color: #0f172a; background: #38bdf8; box-shadow: 0 10px 18px rgba(56,189,248,0.35); }
+    .actions a.play:hover { transform: translateY(-1px); box-shadow: 0 12px 20px rgba(56,189,248,0.4); }
+    .actions button.secondary, .actions button.copy, .actions button.share { background: rgba(148,163,184,0.15); color: inherit; }
+    .actions button.secondary:hover, .actions button.copy:hover, .actions button.share:hover { background: rgba(148,163,184,0.25); }
 
     .player-dropdown { position: relative; width: 100%; }
     .player-dropdown__toggle { width: 100%; justify-content: space-between; }
@@ -259,30 +342,30 @@ function buildHtml(entries, playerPresets) {
     .player-dropdown__menu {
       position: absolute; top: calc(100% + 0.35rem); left: 0; right: 0;
       display: none; flex-direction: column; gap: 0.4rem; margin: 0; padding: 0.6rem; list-style: none;
-      border-radius: 0.9rem; border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 18px 28px rgba(15, 23, 42, 0.45); z-index: 10;
+      border-radius: 0.9rem; border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.95);
+      box-shadow: 0 18px 28px rgba(15,23,42,0.45); z-index: 10;
     }
     .player-dropdown.is-open .player-dropdown__menu { display: flex; }
     .player-dropdown__menu li a {
       display: inline-flex; align-items: center; justify-content: space-between;
       gap: 0.45rem; padding: 0.55rem 0.7rem; border-radius: 0.6rem; text-decoration: none;
-      color: #38bdf8; background: rgba(56, 189, 248, 0.12); transition: background 120ms ease, color 120ms ease;
+      color: #38bdf8; background: rgba(56,189,248,0.12); transition: background 120ms ease, color 120ms ease;
     }
-    .player-dropdown__menu li a img { width: 18px; height: 18px; object-fit: contain; filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.6)); }
+    .player-dropdown__menu li a img { width: 18px; height: 18px; object-fit: contain; filter: drop-shadow(0 0 2px rgba(15,23,42,0.6)); }
     .player-dropdown__menu li a span { flex: 1; }
 
     .player-dropdown__menu li a:hover, .player-dropdown__menu li a:focus-visible {
-      background: rgba(56, 189, 248, 0.2); color: #f0f9ff;
+      background: rgba(56,189,248,0.2); color: #f0f9ff;
     }
     footer { font-size: 0.8rem; color: #64748b; text-align: center; margin-top: auto; }
 
     @media (prefers-color-scheme: light) {
       body { background: #f8fafc; color: #0f172a; }
-      .card { background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(148, 163, 184, 0.45); box-shadow: 0 15px 25px rgba(100, 116, 139, 0.15); }
-      .actions a.play { color: white; background: #2563eb; box-shadow: 0 12px 20px rgba(37, 99, 235, 0.35); }
-      .actions button.secondary, .actions button.copy, .actions button.share { background: rgba(148, 163, 184, 0.2); color: inherit; }
-      .player-dropdown__menu { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(148, 163, 184, 0.45); box-shadow: 0 18px 28px rgba(148, 163, 184, 0.25); }
-      .player-dropdown__menu li a { color: #2563eb; background: rgba(37, 99, 235, 0.12); }
+      .card { background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.45); box-shadow: 0 15px 25px rgba(100,116,139,0.15); }
+      .actions a.play { color: white; background: #2563eb; box-shadow: 0 12px 20px rgba(37,99,235,0.35); }
+      .actions button.secondary, .actions button.copy, .actions button.share { background: rgba(148,163,184,0.2); color: inherit; }
+      .player-dropdown__menu { background: rgba(255,255,255,0.95); border: 1px solid rgba(148,163,184,0.45); box-shadow: 0 18px 28px rgba(148,163,184,0.25); }
+      .player-dropdown__menu li a { color: #2563eb; background: rgba(37,99,235,0.12); }
     }
   </style>
 </head>
@@ -300,7 +383,13 @@ function buildHtml(entries, playerPresets) {
   <script>
     const playlist = ${playlistJson};
     const players = ${playersJson};
-    const defaultPlayer = players.find(p => p.isDefault) || players[0] || null;
+
+    const allPlayers = Array.isArray(players) ? players : [];
+    let availablePlayers = allPlayers.slice();
+    let defaultPlayer =
+      availablePlayers.find(player => player.isDefault) ||
+      availablePlayers[0] ||
+      null;
 
     const playlistContainer = document.getElementById("playlist");
     const searchInput = document.getElementById("search");
@@ -374,7 +463,7 @@ function buildHtml(entries, playerPresets) {
 
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeActiveDropdown(); });
 
-    function createPlayerDropdown(item, index) {
+    function createPlayerDropdown(item, index, playersList) {
       const dropdown = document.createElement("div");
       dropdown.className = "player-dropdown";
 
@@ -410,7 +499,7 @@ function buildHtml(entries, playerPresets) {
         activeDropdown = dropdown;
       });
 
-      for (const player of players) {
+      for (const player of playersList) {
         const li = document.createElement("li");
         const link = document.createElement("a");
         link.href = buildPlayerUrl(player, item);
@@ -477,10 +566,16 @@ function buildHtml(entries, playerPresets) {
         const actions = document.createElement("div");
         actions.className = "actions";
 
-        if (defaultPlayer) {
+        const activePlayers = availablePlayers.length ? availablePlayers : allPlayers;
+        const selectedDefault =
+          (defaultPlayer && activePlayers.includes(defaultPlayer))
+            ? defaultPlayer
+            : (activePlayers.find(p => p.isDefault) || activePlayers[0] || null);
+
+        if (selectedDefault) {
           const playLink = document.createElement("a");
           playLink.className = "play";
-          playLink.href = buildPlayerUrl(defaultPlayer, item);
+          playLink.href = buildPlayerUrl(selectedDefault, item);
           playLink.textContent = "Reproducir";
           playLink.target = "_blank";
           playLink.rel = "noreferrer";
@@ -495,8 +590,9 @@ function buildHtml(entries, playerPresets) {
           actions.appendChild(fallbackLink);
         }
 
-        if (players.length > 1) {
-          actions.appendChild(createPlayerDropdown(item, index));
+        const dropdownPlayers = activePlayers;
+        if (dropdownPlayers.length > 1) {
+          actions.appendChild(createPlayerDropdown(item, index, dropdownPlayers));
         }
 
         const copyBtn = document.createElement("button");
@@ -558,6 +654,138 @@ function buildHtml(entries, playerPresets) {
     groupFilter.addEventListener("change", applyFilters);
 
     render(playlist);
+
+    /* ============
+       Availability
+       ============ */
+    const platformTags = (function detectPlatformTags() {
+      const tags = new Set();
+      const ua = (navigator.userAgent || "").toLowerCase();
+
+      if (/iphone|ipad|ipod/.test(ua)) { tags.add("ios"); tags.add("mobile"); }
+      if (/android/.test(ua)) { tags.add("android"); tags.add(/tablet/.test(ua) ? "tablet" : "mobile"); }
+      if (/windows nt/.test(ua)) { tags.add("windows"); tags.add("desktop"); }
+      if (/macintosh|mac os x/.test(ua)) { tags.add("mac"); tags.add("desktop"); }
+      if (/linux/.test(ua) && !tags.has("android")) { tags.add("linux"); }
+      if (/smart-tv|smarttv|hbbtv/.test(ua)) { tags.add("smart-tv"); }
+      if (/web0s|webos|lgtv/.test(ua)) { tags.add("webos"); tags.add("smart-tv"); }
+      if (/crkey/.test(ua)) { tags.add("chromecast"); }
+      if (!tags.has("desktop") && !tags.has("mobile")) {
+        tags.add(/mobile|iphone|android/.test(ua) ? "mobile" : "desktop");
+      }
+      if (/safari/.test(ua) && !/chrome|crios|crmo/.test(ua)) tags.add("safari");
+      if (/chrome|crios|crmo/.test(ua)) tags.add("chrome");
+      if (/firefox|fxios/.test(ua)) tags.add("firefox");
+      return tags;
+    })();
+
+    function matchesPlatforms(availability) {
+      if (!availability) return true;
+
+      const { platforms, excludePlatforms } = availability;
+      if (Array.isArray(excludePlatforms) && excludePlatforms.length) {
+        for (const platform of excludePlatforms) {
+          if (platformTags.has(platform)) return false;
+        }
+      }
+
+      if (Array.isArray(platforms) && platforms.length) {
+        let matches = false;
+        for (const platform of platforms) {
+          if (platformTags.has(platform)) { matches = true; break; }
+        }
+        if (!matches) return false;
+      }
+
+      return true;
+    }
+
+    function matchesHostname(availability) {
+      if (!availability || !Array.isArray(availability.hostnames) || !availability.hostnames.length) return true;
+      const hostname = (location.hostname || "").toLowerCase();
+      return availability.hostnames.some(candidate => candidate === hostname);
+    }
+
+    async function probeHttpEndpoint(endpoint) {
+      if (!endpoint || !endpoint.url) return false;
+
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      let timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(() => {
+          try { controller.abort(); } catch (e) { console.warn("AbortController error", e); }
+        }, endpoint.timeout || 2500);
+      }
+
+      try {
+        const response = await fetch(endpoint.url, {
+          method: endpoint.method || "HEAD",
+          mode: endpoint.mode || "no-cors",
+          cache: "no-store",
+          signal: controller ? controller.signal : undefined
+        });
+
+        if (timeoutId) clearTimeout(timeoutId);
+
+        if (response.type === "opaque") return true;
+
+        if (Array.isArray(endpoint.expectStatus) && endpoint.expectStatus.length) {
+          return endpoint.expectStatus.includes(response.status);
+        }
+
+        return response.ok;
+      } catch (error) {
+        if (timeoutId) clearTimeout(timeoutId);
+        return false;
+      }
+    }
+
+    async function matchesHttpAvailability(availability) {
+      if (!availability || !Array.isArray(availability.http) || !availability.http.length) return true;
+
+      for (const endpoint of availability.http) {
+        try {
+          const result = await probeHttpEndpoint(endpoint);
+          if (result) return true;
+        } catch (error) {
+          console.warn("Fallo al comprobar endpoint", endpoint, error);
+        }
+      }
+
+      return false;
+    }
+
+    async function resolveAvailablePlayers() {
+      const available = [];
+      for (const player of allPlayers) {
+        const availability = player.availability;
+        if (!matchesPlatforms(availability)) continue;
+        if (!matchesHostname(availability)) continue;
+
+        if (await matchesHttpAvailability(availability)) {
+          available.push(player);
+        }
+      }
+
+      availablePlayers = available.length ? available : allPlayers.slice();
+
+      defaultPlayer =
+        availablePlayers.find(p => p.isDefault) ||
+        availablePlayers[0] ||
+        null;
+
+      applyFilters();
+    }
+
+    resolveAvailablePlayers().catch((error) => {
+      console.warn("No se pudo evaluar la disponibilidad de reproductores", error);
+      availablePlayers = allPlayers.slice();
+      defaultPlayer =
+        availablePlayers.find(p => p.isDefault) ||
+        availablePlayers[0] ||
+        null;
+      applyFilters();
+    });
   </script>
 </body>
 </html>`;
