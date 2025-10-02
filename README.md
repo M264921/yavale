@@ -9,6 +9,25 @@ Monorepo personal para centralizar todo el ecosistema Montana/YaVale:
 - **`docs/`** - sitio estatico listo para GitHub Pages con tu lista M3U8 renderizada.
 - **`playlists/`** - copia rastreada de la playlist M3U8 que alimenta la pagina publica.
 
+## Enlaces universales entre la app iOS y la web
+
+Si publicas el sitio estatico (`docs/`) en GitHub Pages puedes hacer que los enlaces `https://montanaopenaitv.github.io/yavale/...`
+abran directamente la app nativa en iPhone/iPad.
+
+1. **Dominio asociado**
+   - Xcode ya tiene activada la capacidad *Associated Domains* con el dominio `applinks:montanaopenaitv.github.io` dentro de `packages/ios-app/yavale/APP.entitlements`.
+   - Si usas un dominio personalizado, sustituye la entrada por `applinks:tu-dominio.com` y vuelve a compilar.
+2. **Fichero `apple-app-site-association`**
+   - El repo incluye `docs/apple-app-site-association` y `docs/.well-known/apple-app-site-association` con la configuracion para el bundle `montanaAI.tv.yavale` (Team ID `2WULUBTL4D`).
+   - Ajusta los campos `appID` y `paths` si cambias de identificador o si la web sirve los enlaces desde otra ruta.
+   - En la app, actualiza `DeepLinkConfiguration.allowedHosts` en `ContentView.swift` para que coincida con el dominio que publiques.
+3. **Sincroniza y despliega**
+   - Sube los cambios a GitHub y espera a que GitHub Pages vuelva a publicar el sitio.
+   - La carpeta `docs/` incluye `.nojekyll`, por lo que los JSON se sirven tal cual en cuanto el despliegue termine (suele tardar 1-2 minutos).
+   - Verifica en un dispositivo real que al abrir `https://montanaopenaitv.github.io/yavale/` en Safari se ofrece abrir la app.
+
+> El fichero `.nojekyll` dentro de `docs/` garantiza que GitHub Pages sirva los JSON tal cual.
+
 ## Requisitos
 
 - Node.js 18+ (para el addon y los scripts CLI).
@@ -68,11 +87,14 @@ Variables de entorno soportadas en el addon:
     - `{{infohash}}` / `{{infohash_encoded}}` - hash AceStream si el enlace lo incluye.
     - `{{title}}` / `{{title_encoded}}` - titulo del canal.
   - `icon` (opcional): ruta o URL a un icono de 18x18px para mostrar junto al nombre.
+codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-kzlk2n
 - Usa el bloque `availability` para mostrar cada reproductor solo cuando tenga sentido:
   - `platforms`: lista de etiquetas admitidas (`windows`, `mac`, `linux`, `ios`, `android`, `webos`, `smart-tv`, `desktop`, `mobile`, `tablet`, `safari`, `chrome`, `firefox`, etc.). Si ninguna coincide con tu dispositivo actual, ese reproductor se oculta.
   - `excludePlatforms`: etiquetas que deben ocultar el reproductor si el navegador pertenece a ellas.
   - `hostnames`: restringe a dominios concretos (útil si solo quieres que aparezca cuando entras desde una URL interna como `playlist.casita.local`).
   - `http`: lista de URLs (string o `{ url, method, timeout, mode, expectStatus }`) que el navegador intentará consultar. Solo si al menos una responde, el reproductor se mostrará. Esto permite detectar dispositivos en tu misma red (por ejemplo, `http://192.168.1.80:3000/ping`).
+
+ main
 - Opcional: crea otros presets en un fichero alternativo y ejecútalo con `PLAYER_PRESETS=mi-archivo.json npm run generate:playlist`.
 - Cuando uses la variable `PLAYER_PRESETS`, la ruta se resuelve respecto a la raiz del repo (puedes pasar rutas absolutas si lo prefieres).
 - El script de PowerShell `scripts/update-playlist.ps1` acepta `-PlayerPresetPath "ruta\a\mis-presets.json"` para automatizar este override.
