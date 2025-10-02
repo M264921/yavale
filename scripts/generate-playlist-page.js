@@ -282,9 +282,10 @@ function sanitizePlayerPreset(entry, index, presetPath) {
   return preset;
 }
 
+
 function buildHtml(entries, playerPresets) {
-  const playlistJson = JSON.stringify(entries).replace(/</g, "\\u003C");
-  const playersJson = JSON.stringify(playerPresets).replace(/</g, "\\u003C");
+  const playlistJson = JSON.stringify(entries).replace(/</g, "\u003C");
+  const playersJson = JSON.stringify(playerPresets).replace(/</g, "\u003C");
   const generatedAt = new Date().toISOString();
 
   return `<!DOCTYPE html>
@@ -302,7 +303,8 @@ function buildHtml(entries, playerPresets) {
     header { display: flex; flex-direction: column; gap: 0.75rem; }
     h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.3rem); }
     .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-    input[type="search"] {
+    .toolbar__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    input[type="search"], .settings input[type="url"], .settings input[type="text"] {
       flex: 1 1 250px; padding: 0.65rem 0.9rem; border-radius: 0.75rem;
       border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.65); color: inherit;
     }
@@ -310,6 +312,30 @@ function buildHtml(entries, playerPresets) {
       padding: 0.65rem 0.9rem; border-radius: 0.75rem;
       border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.65); color: inherit;
     }
+    .toolbar button, .settings button {
+      padding: 0.6rem 0.9rem; border-radius: 0.75rem; border: 1px solid rgba(148,163,184,0.35);
+      background: rgba(148,163,184,0.15); color: inherit; cursor: pointer; font-weight: 600;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+    .toolbar button:hover, .settings button:hover {
+      background: rgba(148,163,184,0.25);
+      border-color: rgba(148,163,184,0.45);
+    }
+    .settings {
+      display: grid; gap: 0.75rem; padding: 1rem; border-radius: 0.9rem;
+      background: rgba(15,23,42,0.45); border: 1px solid rgba(148,163,184,0.25);
+    }
+    .settings[hidden] { display: none; }
+    .settings .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .settings label { font-weight: 600; font-size: 0.85rem; color: #cbd5f5; }
+    .settings__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .settings__hint { margin: 0; font-size: 0.75rem; color: #94a3b8; }
+    .status { font-size: 0.85rem; color: #94a3b8; }
+    .status[hidden] { display: none; }
+    .status[data-variant="success"] { color: #4ade80; }
+    .status[data-variant="error"] { color: #f87171; }
+    .status[data-variant="info"] { color: #38bdf8; }
+    .status[data-variant="loading"] { color: #fbbf24; }
     main { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1.25rem; }
     .card {
       display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; border-radius: 1rem;
@@ -353,7 +379,6 @@ function buildHtml(entries, playerPresets) {
     }
     .player-dropdown__menu li a img { width: 18px; height: 18px; object-fit: contain; filter: drop-shadow(0 0 2px rgba(15,23,42,0.6)); }
     .player-dropdown__menu li a span { flex: 1; }
-
     .player-dropdown__menu li a:hover, .player-dropdown__menu li a:focus-visible {
       background: rgba(56,189,248,0.2); color: #f0f9ff;
     }
@@ -361,6 +386,10 @@ function buildHtml(entries, playerPresets) {
 
     @media (prefers-color-scheme: light) {
       body { background: #f8fafc; color: #0f172a; }
+      .settings { background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.4); }
+      .settings label { color: #0f172a; }
+      .settings__hint { color: #475569; }
+      .status { color: #475569; }
       .card { background: rgba(255,255,255,0.9); border: 1px solid rgba(148,163,184,0.45); box-shadow: 0 15px 25px rgba(100,116,139,0.15); }
       .actions a.play { color: white; background: #2563eb; box-shadow: 0 12px 20px rgba(37,99,235,0.35); }
       .actions button.secondary, .actions button.copy, .actions button.share { background: rgba(148,163,184,0.2); color: inherit; }
@@ -376,7 +405,27 @@ function buildHtml(entries, playerPresets) {
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group"><option value="">Todos los grupos</option></select>
+      <div class="toolbar__actions">
+        <button id="toggleSettings" type="button" aria-expanded="false">Ajustes</button>
+        <button id="refreshPlayers" type="button">Detectar reproductores</button>
+      </div>
     </div>
+    <form id="settingsForm" class="settings" hidden>
+      <div class="field">
+        <label for="engineUrl">URL del motor AceStream</label>
+        <input id="engineUrl" name="engineUrl" type="url" placeholder="http://127.0.0.1:6878" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="accessToken">Access token</label>
+        <input id="accessToken" name="accessToken" type="text" autocomplete="off" />
+      </div>
+      <div class="settings__actions">
+        <button type="submit">Guardar ajustes</button>
+        <button type="button" id="resetSettings">Restablecer</button>
+      </div>
+      <p class="settings__hint">Introduce la URL del motor AceStream (por ejemplo, <code>http://127.0.0.1:6878</code>) y su access token para consultar <code>get_available_players</code>.</p>
+    </form>
+    <div id="playerStatus" class="status" role="status" aria-live="polite" hidden></div>
   </header>
   <main id="playlist" role="list"></main>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
@@ -384,33 +433,116 @@ function buildHtml(entries, playerPresets) {
     const playlist = ${playlistJson};
     const players = ${playersJson};
 
-    const allPlayers = Array.isArray(players) ? players : [];
-    let availablePlayers = allPlayers.slice();
-    let defaultPlayer =
-      availablePlayers.find(player => player.isDefault) ||
-      availablePlayers[0] ||
-      null;
+    const staticPlayers = Array.isArray(players) ? players : [];
+    let dynamicPlayers = [];
+
+    let availablePlayers = [];
+    let defaultPlayer = null;
+
+    const state = { settings: loadSettings(), engineBusy: false };
 
     const playlistContainer = document.getElementById("playlist");
     const searchInput = document.getElementById("search");
     const groupFilter = document.getElementById("group");
+    const settingsForm = document.getElementById("settingsForm");
+    const settingsToggle = document.getElementById("toggleSettings");
+    const refreshPlayersBtn = document.getElementById("refreshPlayers");
+    const resetSettingsBtn = document.getElementById("resetSettings");
+    const statusBox = document.getElementById("playerStatus");
 
-    function getAttributes(item) {
-      return item && typeof item === "object" && item.attributes && typeof item.attributes === "object"
-        ? item.attributes : {};
+    function defaultSettings() {
+      return { engineUrl: "", accessToken: "" };
     }
 
-    const groups = Array.from(new Set(playlist.map(i => getAttributes(i)["group-title"]).filter(Boolean))).sort();
+    function loadSettings() {
+      try {
+        if (typeof localStorage === "undefined") return defaultSettings();
+        const raw = localStorage.getItem("yavale.settings.v1");
+        if (!raw) return defaultSettings();
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return defaultSettings();
+        return {
+          engineUrl: typeof parsed.engineUrl === "string" ? parsed.engineUrl : "",
+          accessToken: typeof parsed.accessToken === "string" ? parsed.accessToken : ""
+        };
+      } catch (error) {
+        console.warn("No se pudieron cargar los ajustes almacenados", error);
+        return defaultSettings();
+      }
+    }
+
+    function saveSettings(settings) {
+      try {
+        if (typeof localStorage === "undefined") return;
+        localStorage.setItem("yavale.settings.v1", JSON.stringify(settings));
+      } catch (error) {
+        console.warn("No se pudieron guardar los ajustes", error);
+      }
+    }
+
+    function populateSettingsForm() {
+      if (!settingsForm) return;
+      const engineInput = settingsForm.querySelector('[name="engineUrl"]');
+      const tokenInput = settingsForm.querySelector('[name="accessToken"]');
+      if (engineInput) engineInput.value = state.settings.engineUrl || "";
+      if (tokenInput) tokenInput.value = state.settings.accessToken || "";
+    }
+
+    function setStatus(message, variant) {
+      if (!statusBox) return;
+      if (!message) {
+        statusBox.textContent = "";
+        statusBox.setAttribute("hidden", "true");
+        statusBox.removeAttribute("data-variant");
+        return;
+      }
+      statusBox.textContent = message;
+      statusBox.dataset.variant = variant || "info";
+      statusBox.removeAttribute("hidden");
+    }
+
+    function getAttributes(item) {
+      return item && typeof item === "object" && item.attributes && typeof item.attributes === "object" ? item.attributes : {};
+    }
+
+    function getAllPlayers() {
+      const map = new Map();
+      for (const player of staticPlayers) {
+        if (!player || typeof player !== "object") continue;
+        const key = player.id || "static-" + map.size;
+        if (!map.has(key)) map.set(key, player);
+      }
+      for (const player of dynamicPlayers) {
+        if (!player || typeof player !== "object") continue;
+        const key = player.id || "dynamic-" + map.size;
+        if (!map.has(key)) map.set(key, player);
+      }
+      return Array.from(map.values());
+    }
+
+    function updateAvailablePlayersState(candidateList) {
+      const list = Array.isArray(candidateList) ? candidateList.filter(Boolean) : [];
+      if (list.length) {
+        availablePlayers = list;
+      } else {
+        availablePlayers = getAllPlayers();
+      }
+      defaultPlayer = availablePlayers.find(player => player.isDefault) || availablePlayers[0] || null;
+    }
+
+    const groups = Array.from(new Set(playlist.map(item => getAttributes(item)["group-title"]).filter(Boolean))).sort();
     for (const group of groups) {
-      const option = document.createElement("option");
-      option.value = group; option.textContent = group; groupFilter.appendChild(option);
+      const opt = document.createElement("option");
+      opt.value = group;
+      opt.textContent = group;
+      groupFilter.appendChild(opt);
     }
 
     function extractInfoHash(url) {
       if (!url) return "";
-      if (url.startsWith("acestream://")) return url.slice("acestream://".length);
+      if (url.indexOf("acestream://") === 0) return url.slice("acestream://".length);
       const magnetPrefix = "magnet:?xt=urn:btih:";
-      if (url.startsWith(magnetPrefix)) {
+      if (url.indexOf(magnetPrefix) === 0) {
         const hashSection = url.slice(magnetPrefix.length);
         const endIndex = hashSection.indexOf("&");
         return endIndex === -1 ? hashSection : hashSection.slice(0, endIndex);
@@ -424,8 +556,8 @@ function buildHtml(entries, playerPresets) {
       const title = item.title || "";
 
       if (player.type === "acestream") {
-        if (url.startsWith("acestream://")) return url;
-        if (url.startsWith("magnet:?xt=urn:btih:")) return infohash ? "acestream://" + infohash : url;
+        if (url.indexOf("acestream://") === 0) return url;
+        if (url.indexOf("magnet:?xt=urn:btih:") === 0) return infohash ? "acestream://" + infohash : url;
         return url;
       }
 
@@ -433,16 +565,14 @@ function buildHtml(entries, playerPresets) {
         const encoded = encodeURIComponent(url);
         const encodedTitle = encodeURIComponent(title);
         const encodedInfoHash = encodeURIComponent(infohash);
-        let result = player.template;
-        result = result.split("{{url}}").join(encoded);
-        result = result.split("{{url_raw}}").join(url);
-        result = result.split("{{infohash}}").join(infohash);
-        result = result.split("{{infohash_encoded}}").join(encodedInfoHash);
-        result = result.split("{{title}}").join(title);
-        result = result.split("{{title_encoded}}").join(encodedTitle);
-        return result;
+        return player.template
+          .split("{{url}}").join(encoded)
+          .split("{{url_raw}}").join(url)
+          .split("{{infohash}}").join(infohash)
+          .split("{{infohash_encoded}}").join(encodedInfoHash)
+          .split("{{title}}").join(title)
+          .split("{{title_encoded}}").join(encodedTitle);
       }
-
       return url;
     }
 
@@ -454,16 +584,14 @@ function buildHtml(entries, playerPresets) {
       activeDropdown.classList.remove("is-open");
       activeDropdown = null;
     }
-
-    document.addEventListener("click", (event) => {
-      if (!activeDropdown) return;
-      if (activeDropdown.contains(event.target)) return;
-      closeActiveDropdown();
+    document.addEventListener("click", event => {
+      if (activeDropdown && !activeDropdown.contains(event.target)) closeActiveDropdown();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeActiveDropdown();
     });
 
-    document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeActiveDropdown(); });
-
-    function createPlayerDropdown(item, index, playersList) {
+    function createPlayerDropdown(item) {
       const dropdown = document.createElement("div");
       dropdown.className = "player-dropdown";
 
@@ -479,46 +607,44 @@ function buildHtml(entries, playerPresets) {
 
       const menu = document.createElement("ul");
       menu.className = "player-dropdown__menu";
-      const menuId = "player-menu-" + index;
-      menu.id = menuId;
-      menu.setAttribute("role", "menu");
-      toggle.setAttribute("aria-controls", menuId);
-      toggle.setAttribute("aria-expanded", "false");
 
       toggle.addEventListener("click", () => {
-        const isOpen = dropdown.classList.contains("is-open");
+        const isOpen = dropdown.classList.toggle("is-open");
         if (isOpen) {
-          dropdown.classList.remove("is-open");
+          if (activeDropdown && activeDropdown !== dropdown) closeActiveDropdown();
+          activeDropdown = dropdown;
+          toggle.setAttribute("aria-expanded", "true");
+        } else {
           toggle.setAttribute("aria-expanded", "false");
           if (activeDropdown === dropdown) activeDropdown = null;
-          return;
         }
-        closeActiveDropdown();
-        dropdown.classList.add("is-open");
-        toggle.setAttribute("aria-expanded", "true");
-        activeDropdown = dropdown;
       });
 
-      for (const player of playersList) {
+      const playersToRender = availablePlayers.length ? availablePlayers : getAllPlayers();
+      for (const player of playersToRender) {
         const li = document.createElement("li");
         const link = document.createElement("a");
         link.href = buildPlayerUrl(player, item);
         link.target = "_blank";
         link.rel = "noreferrer";
-        link.setAttribute("role", "menuitem");
 
         if (player.icon) {
           const icon = document.createElement("img");
-          icon.src = player.icon; icon.alt = ""; icon.width = 18; icon.height = 18;
-          icon.setAttribute("aria-hidden", "true");
+          icon.src = player.icon;
+          icon.alt = "";
+          icon.width = 18;
+          icon.height = 18;
           link.appendChild(icon);
         }
 
         const labelSpan = document.createElement("span");
-        labelSpan.textContent = player.label;
+        labelSpan.textContent = player.label || player.id || "Reproductor";
         link.appendChild(labelSpan);
 
-        link.addEventListener("click", () => { closeActiveDropdown(); });
+        link.addEventListener("click", () => {
+          closeActiveDropdown();
+        });
+
         li.appendChild(link);
         menu.appendChild(li);
       }
@@ -528,17 +654,19 @@ function buildHtml(entries, playerPresets) {
       return dropdown;
     }
 
-    function render(list) {
+    function render(items) {
       closeActiveDropdown();
       playlistContainer.innerHTML = "";
-      if (!list.length) {
+      if (!items.length) {
         const empty = document.createElement("p");
         empty.textContent = "No hay canales que coincidan con el filtro.";
         playlistContainer.appendChild(empty);
         return;
       }
 
-      list.forEach((item, index) => {
+      const playersToRender = availablePlayers.length ? availablePlayers : getAllPlayers();
+
+      items.forEach(item => {
         const card = document.createElement("article");
         card.className = "card";
         card.setAttribute("role", "listitem");
@@ -549,16 +677,15 @@ function buildHtml(entries, playerPresets) {
 
         const meta = document.createElement("div");
         meta.className = "meta";
-        const attributes = getAttributes(item);
-
-        if (attributes["group-title"]) {
+        const attrs = getAttributes(item);
+        if (attrs["group-title"]) {
           const badge = document.createElement("span");
-          badge.textContent = attributes["group-title"];
+          badge.textContent = attrs["group-title"];
           meta.appendChild(badge);
         }
-        if (attributes["tvg-id"]) {
+        if (attrs["tvg-id"]) {
           const badge = document.createElement("span");
-          badge.textContent = "ID: " + attributes["tvg-id"];
+          badge.textContent = "ID: " + attrs["tvg-id"];
           meta.appendChild(badge);
         }
         card.appendChild(meta);
@@ -566,11 +693,10 @@ function buildHtml(entries, playerPresets) {
         const actions = document.createElement("div");
         actions.className = "actions";
 
-        const activePlayers = availablePlayers.length ? availablePlayers : allPlayers;
         const selectedDefault =
-          (defaultPlayer && activePlayers.includes(defaultPlayer))
+          defaultPlayer && playersToRender.includes(defaultPlayer)
             ? defaultPlayer
-            : (activePlayers.find(p => p.isDefault) || activePlayers[0] || null);
+            : playersToRender.find(player => player.isDefault) || playersToRender[0] || null;
 
         if (selectedDefault) {
           const playLink = document.createElement("a");
@@ -581,18 +707,17 @@ function buildHtml(entries, playerPresets) {
           playLink.rel = "noreferrer";
           actions.appendChild(playLink);
         } else {
-          const fallbackLink = document.createElement("a");
-          fallbackLink.className = "play";
-          fallbackLink.href = item.url;
-          fallbackLink.textContent = "Reproducir";
-          fallbackLink.target = "_blank";
-          fallbackLink.rel = "noreferrer";
-          actions.appendChild(fallbackLink);
+          const fallback = document.createElement("a");
+          fallback.className = "play";
+          fallback.href = item.url;
+          fallback.textContent = "Reproducir";
+          fallback.target = "_blank";
+          fallback.rel = "noreferrer";
+          actions.appendChild(fallback);
         }
 
-        const dropdownPlayers = activePlayers;
-        if (dropdownPlayers.length > 1) {
-          actions.appendChild(createPlayerDropdown(item, index, dropdownPlayers));
+        if (playersToRender.length > 1) {
+          actions.appendChild(createPlayerDropdown(item));
         }
 
         const copyBtn = document.createElement("button");
@@ -603,10 +728,15 @@ function buildHtml(entries, playerPresets) {
           try {
             await navigator.clipboard.writeText(item.url);
             copyBtn.textContent = "Copiado";
-            setTimeout(() => { copyBtn.textContent = "Copiar enlace"; }, 1500);
-          } catch {
+            setTimeout(() => {
+              copyBtn.textContent = "Copiar enlace";
+            }, 1500);
+          } catch (error) {
+            console.warn("No se pudo copiar al portapapeles", error);
             copyBtn.textContent = "Error";
-            setTimeout(() => { copyBtn.textContent = "Copiar enlace"; }, 1500);
+            setTimeout(() => {
+              copyBtn.textContent = "Copiar enlace";
+            }, 1500);
           }
         });
         actions.appendChild(copyBtn);
@@ -618,14 +748,20 @@ function buildHtml(entries, playerPresets) {
         shareBtn.addEventListener("click", async () => {
           const shareData = { title: item.title || "Canal AceStream", text: item.title || "Canal AceStream", url: item.url };
           if (navigator.share) {
-            try { await navigator.share(shareData); return; }
-            catch (e) { console.warn("Share cancelado", e); }
+            try {
+              await navigator.share(shareData);
+              return;
+            } catch (error) {
+              console.warn("Share cancelado", error);
+            }
           }
           try {
             await navigator.clipboard.writeText(item.url);
             shareBtn.textContent = "Copiado";
-            setTimeout(() => { shareBtn.textContent = "Compartir"; }, 1500);
-          } catch {
+            setTimeout(() => {
+              shareBtn.textContent = "Compartir";
+            }, 1500);
+          } catch (error) {
             alert("No se pudo compartir ni copiar este enlace");
           }
         });
@@ -638,14 +774,14 @@ function buildHtml(entries, playerPresets) {
 
     function applyFilters() {
       const term = searchInput.value.toLowerCase();
-      const group = groupFilter.value;
+      const selectedGroup = groupFilter.value;
       const filtered = playlist.filter(item => {
-        const matchTerm = term
-          ? (item.title && item.title.toLowerCase().includes(term)) ||
-            (JSON.stringify(getAttributes(item)).toLowerCase().includes(term))
+        const attrs = getAttributes(item);
+        const matchesTerm = term
+          ? (item.title && item.title.toLowerCase().includes(term)) || JSON.stringify(attrs).toLowerCase().includes(term)
           : true;
-        const matchGroup = group ? getAttributes(item)["group-title"] === group : true;
-        return matchTerm && matchGroup;
+        const matchesGroup = selectedGroup ? attrs["group-title"] === selectedGroup : true;
+        return matchesTerm && matchesGroup;
       });
       render(filtered);
     }
@@ -653,67 +789,136 @@ function buildHtml(entries, playerPresets) {
     searchInput.addEventListener("input", applyFilters);
     groupFilter.addEventListener("change", applyFilters);
 
+    populateSettingsForm();
+    updateAvailablePlayersState(getAllPlayers());
     render(playlist);
 
-    /* ============
-       Availability
-       ============ */
-    const platformTags = (function detectPlatformTags() {
+    if (settingsToggle && settingsForm) {
+      settingsToggle.addEventListener("click", () => {
+        const isHidden = settingsForm.hasAttribute("hidden");
+        if (isHidden) {
+          populateSettingsForm();
+          settingsForm.removeAttribute("hidden");
+          settingsToggle.setAttribute("aria-expanded", "true");
+        } else {
+          settingsForm.setAttribute("hidden", "true");
+          settingsToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    if (settingsForm) {
+      settingsForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const formData = new FormData(settingsForm);
+        state.settings = {
+          engineUrl: String(formData.get("engineUrl") || "").trim(),
+          accessToken: String(formData.get("accessToken") || "").trim()
+        };
+        saveSettings(state.settings);
+        setStatus('Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.', "success");
+        settingsForm.setAttribute("hidden", "true");
+        if (settingsToggle) settingsToggle.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    if (resetSettingsBtn) {
+      resetSettingsBtn.addEventListener("click", () => {
+        state.settings = defaultSettings();
+        populateSettingsForm();
+        saveSettings(state.settings);
+        dynamicPlayers = [];
+        setStatus("Ajustes restablecidos.", "info");
+        resolveAvailablePlayers();
+      });
+    }
+
+    if (refreshPlayersBtn) {
+      refreshPlayersBtn.addEventListener("click", () => {
+        refreshEnginePlayers();
+      });
+    }
+
+    const platformTags = (() => {
       const tags = new Set();
       const ua = (navigator.userAgent || "").toLowerCase();
-
-      if (/iphone|ipad|ipod/.test(ua)) { tags.add("ios"); tags.add("mobile"); }
-      if (/android/.test(ua)) { tags.add("android"); tags.add(/tablet/.test(ua) ? "tablet" : "mobile"); }
-      if (/windows nt/.test(ua)) { tags.add("windows"); tags.add("desktop"); }
-      if (/macintosh|mac os x/.test(ua)) { tags.add("mac"); tags.add("desktop"); }
-      if (/linux/.test(ua) && !tags.has("android")) { tags.add("linux"); }
-      if (/smart-tv|smarttv|hbbtv/.test(ua)) { tags.add("smart-tv"); }
-      if (/web0s|webos|lgtv/.test(ua)) { tags.add("webos"); tags.add("smart-tv"); }
-      if (/crkey/.test(ua)) { tags.add("chromecast"); }
+      if (/iphone|ipad|ipod/.test(ua)) {
+        tags.add("ios");
+        tags.add("mobile");
+      }
+      if (/android/.test(ua)) {
+        tags.add("android");
+        tags.add(/tablet/.test(ua) ? "tablet" : "mobile");
+      }
+      if (/windows nt/.test(ua)) {
+        tags.add("windows");
+        tags.add("desktop");
+      }
+      if (/macintosh|mac os x/.test(ua)) {
+        tags.add("mac");
+        tags.add("desktop");
+      }
+      if (/linux/.test(ua) && !tags.has("android")) {
+        tags.add("linux");
+      }
+      if (/smart-tv|smarttv|hbbtv/.test(ua)) {
+        tags.add("smart-tv");
+      }
+      if (/web0s|webos|lgtv/.test(ua)) {
+        tags.add("webos");
+        tags.add("smart-tv");
+      }
+      if (/crkey/.test(ua)) {
+        tags.add("chromecast");
+      }
       if (!tags.has("desktop") && !tags.has("mobile")) {
         tags.add(/mobile|iphone|android/.test(ua) ? "mobile" : "desktop");
       }
-      if (/safari/.test(ua) && !/chrome|crios|crmo/.test(ua)) tags.add("safari");
-      if (/chrome|crios|crmo/.test(ua)) tags.add("chrome");
-      if (/firefox|fxios/.test(ua)) tags.add("firefox");
+      if (/safari/.test(ua) && !/chrome|crios|crmo/.test(ua)) {
+        tags.add("safari");
+      }
+      if (/chrome|crios|crmo/.test(ua)) {
+        tags.add("chrome");
+      }
+      if (/firefox|fxios/.test(ua)) {
+        tags.add("firefox");
+      }
       return tags;
     })();
 
     function matchesPlatforms(availability) {
       if (!availability) return true;
-
-      const { platforms, excludePlatforms } = availability;
-      if (Array.isArray(excludePlatforms) && excludePlatforms.length) {
-        for (const platform of excludePlatforms) {
-          if (platformTags.has(platform)) return false;
-        }
+      const platforms = Array.isArray(availability.platforms) ? availability.platforms : [];
+      const excluded = Array.isArray(availability.excludePlatforms) ? availability.excludePlatforms : [];
+      for (const name of excluded) {
+        if (platformTags.has(name)) return false;
       }
-
-      if (Array.isArray(platforms) && platforms.length) {
-        let matches = false;
-        for (const platform of platforms) {
-          if (platformTags.has(platform)) { matches = true; break; }
+      if (platforms.length) {
+        for (const name of platforms) {
+          if (platformTags.has(name)) return true;
         }
-        if (!matches) return false;
+        return false;
       }
-
       return true;
     }
 
     function matchesHostname(availability) {
-      if (!availability || !Array.isArray(availability.hostnames) || !availability.hostnames.length) return true;
+      if (!availability || !Array.isArray(availability.hostnames) || !availability.hostnames.length) {
+        return true;
+      }
       const hostname = (location.hostname || "").toLowerCase();
       return availability.hostnames.some(candidate => candidate === hostname);
     }
 
     async function probeHttpEndpoint(endpoint) {
       if (!endpoint || !endpoint.url) return false;
-
       const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
       let timeoutId = null;
       if (controller) {
         timeoutId = setTimeout(() => {
-          try { controller.abort(); } catch (e) { console.warn("AbortController error", e); }
+          try {
+            controller.abort();
+          } catch (error) {}
         }, endpoint.timeout || 2500);
       }
 
@@ -724,15 +929,11 @@ function buildHtml(entries, playerPresets) {
           cache: "no-store",
           signal: controller ? controller.signal : undefined
         });
-
         if (timeoutId) clearTimeout(timeoutId);
-
         if (response.type === "opaque") return true;
-
         if (Array.isArray(endpoint.expectStatus) && endpoint.expectStatus.length) {
           return endpoint.expectStatus.includes(response.status);
         }
-
         return response.ok;
       } catch (error) {
         if (timeoutId) clearTimeout(timeoutId);
@@ -741,55 +942,326 @@ function buildHtml(entries, playerPresets) {
     }
 
     async function matchesHttpAvailability(availability) {
-      if (!availability || !Array.isArray(availability.http) || !availability.http.length) return true;
-
+      if (!availability || !Array.isArray(availability.http) || !availability.http.length) {
+        return true;
+      }
       for (const endpoint of availability.http) {
         try {
-          const result = await probeHttpEndpoint(endpoint);
-          if (result) return true;
+          if (await probeHttpEndpoint(endpoint)) return true;
         } catch (error) {
           console.warn("Fallo al comprobar endpoint", endpoint, error);
         }
       }
-
       return false;
     }
 
     async function resolveAvailablePlayers() {
+      const all = getAllPlayers();
       const available = [];
-      for (const player of allPlayers) {
-        const availability = player.availability;
+      for (const player of all) {
+        const availability = player && typeof player === "object" ? player.availability : null;
         if (!matchesPlatforms(availability)) continue;
         if (!matchesHostname(availability)) continue;
-
-        if (await matchesHttpAvailability(availability)) {
-          available.push(player);
-        }
+        if (await matchesHttpAvailability(availability)) available.push(player);
       }
-
-      availablePlayers = available.length ? available : allPlayers.slice();
-
-      defaultPlayer =
-        availablePlayers.find(p => p.isDefault) ||
-        availablePlayers[0] ||
-        null;
-
+      updateAvailablePlayersState(available);
       applyFilters();
     }
 
-    resolveAvailablePlayers().catch((error) => {
-      console.warn("No se pudo evaluar la disponibilidad de reproductores", error);
-      availablePlayers = allPlayers.slice();
-      defaultPlayer =
-        availablePlayers.find(p => p.isDefault) ||
-        availablePlayers[0] ||
-        null;
+    function normalizeDynamicAvailability(entry) {
+      if (!entry || typeof entry !== "object") return null;
+      const availability = {};
+
+      if (Array.isArray(entry.platforms)) {
+        const platforms = entry.platforms
+          .map(value => (typeof value === "string" ? value.trim().toLowerCase() : ""))
+          .filter(Boolean);
+        if (platforms.length) availability.platforms = platforms;
+      }
+
+      if (Array.isArray(entry.excludePlatforms)) {
+        const excluded = entry.excludePlatforms
+          .map(value => (typeof value === "string" ? value.trim().toLowerCase() : ""))
+          .filter(Boolean);
+        if (excluded.length) availability.excludePlatforms = excluded;
+      }
+
+      if (Array.isArray(entry.hostnames)) {
+        const hostnames = entry.hostnames
+          .map(value => (typeof value === "string" ? value.trim().toLowerCase() : ""))
+          .filter(Boolean);
+        if (hostnames.length) availability.hostnames = hostnames;
+      }
+
+      if (Array.isArray(entry.http)) {
+        const http = [];
+        for (const candidate of entry.http) {
+          if (typeof candidate === "string") {
+            const trimmed = candidate.trim();
+            if (trimmed) {
+              http.push({ url: trimmed, method: "HEAD", timeout: 2500, mode: "no-cors" });
+            }
+            continue;
+          }
+          if (!candidate || typeof candidate !== "object") continue;
+          const endpointUrl = typeof candidate.url === "string" ? candidate.url.trim() : "";
+          if (!endpointUrl) continue;
+          const endpoint = {
+            url: endpointUrl,
+            method: typeof candidate.method === "string" && candidate.method.trim().length ? candidate.method.trim().toUpperCase() : "HEAD",
+            timeout:
+              typeof candidate.timeout === "number" && Number.isFinite(candidate.timeout)
+                ? Math.max(500, candidate.timeout)
+                : 2500,
+            mode: typeof candidate.mode === "string" && candidate.mode.trim().length ? candidate.mode.trim() : "no-cors"
+          };
+          if (Array.isArray(candidate.expectStatus)) {
+            const expectStatus = candidate.expectStatus
+              .map(value => parseInt(value, 10))
+              .filter(value => Number.isInteger(value) && value >= 100 && value <= 599);
+            if (expectStatus.length) endpoint.expectStatus = expectStatus;
+          }
+          http.push(endpoint);
+        }
+        if (http.length) availability.http = http;
+      }
+
+      return Object.keys(availability).length ? availability : null;
+    }
+
+    function normalizeEngineTemplate(template) {
+      let normalized = String(template);
+      const replacements = [
+        [/\%\((?:content_id|infohash)\)s/gi, "{{infohash}}"],
+        [/\%\((?:escaped_content_id|escaped_infohash)\)s/gi, "{{infohash_encoded}}"],
+        [/\%\((?:title)\)s/gi, "{{title}}"],
+        [/\%\((?:escaped_title)\)s/gi, "{{title_encoded}}"],
+        [/\%\((?:url)\)s/gi, "{{url}}"],
+        [/\%\((?:escaped_url)\)s/gi, "{{url}}"],
+        [/\%(?:content_id|infohash)s/gi, "{{infohash}}"],
+        [/\%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
+        [/\%(?:title)s/gi, "{{title}}"],
+        [/\%(?:escaped_title)s/gi, "{{title_encoded}}"],
+        [/\%(?:url)s/gi, "{{url}}"],
+        [/\%(?:escaped_url)s/gi, "{{url}}"],
+        [/\{(?:content_id|infohash)\}/gi, "{{infohash}}"],
+        [/\{(?:escaped_content_id|escaped_infohash)\}/gi, "{{infohash_encoded}}"],
+        [/\{(?:title)\}/gi, "{{title}}"],
+        [/\{(?:escaped_title)\}/gi, "{{title_encoded}}"],
+        [/\{(?:url|escaped_url)\}/gi, "{{url}}"]
+      ];
+      for (const replacement of replacements) {
+        normalized = normalized.replace(replacement[0], replacement[1]);
+      }
+      return normalized;
+    }
+
+    function normalizeEnginePlayers(raw) {
+      const output = [];
+      const seen = new Set();
+      let counter = 0;
+      const stack = new Set();
+
+      function ensureId(candidate, origin) {
+        if (candidate && typeof candidate === "string" && candidate.trim()) return candidate.trim();
+        return "engine-player-" + (origin ? origin + "-" : "") + (++counter);
+      }
+
+      function createPreset(entry, originKey) {
+        if (!entry || typeof entry !== "object") return null;
+
+        let template = entry.template || entry.url_template || entry.play_url_tpl || entry.play_url || entry.launch_url || entry.href || entry.url;
+        if (!template && entry.cmdline) {
+          template = entry.cmdline;
+        }
+        if (!template) {
+          const handler = typeof entry.handler === "string" ? entry.handler.toLowerCase() : "";
+          const type = typeof entry.type === "string" ? entry.type.toLowerCase() : "";
+          const deviceId = entry.device_id || entry.deviceId || entry.uuid || entry.id || entry.name || entry.title || entry.label;
+          if (deviceId && (handler.indexOf("acecast") !== -1 || handler.indexOf("chromecast") !== -1 || handler.indexOf("airplay") !== -1 || handler.indexOf("dlna") !== -1 || type.indexOf("acecast") !== -1 || type.indexOf("chromecast") !== -1 || type.indexOf("airplay") !== -1 || type.indexOf("dlna") !== -1)) {
+            template = "acecast://device/" + encodeURIComponent(deviceId) + "/play?infohash={{infohash}}&title={{title_encoded}}";
+          }
+        }
+        if (!template || typeof template !== "string") return null;
+
+        template = normalizeEngineTemplate(template);
+
+        const id = ensureId(entry.id || entry.device_id || entry.uuid || entry.name, originKey);
+        if (seen.has(id)) return null;
+        seen.add(id);
+
+        const labelSource = entry.label || entry.title || entry.display_name || entry.name || entry.device_name || entry.friendly_name || entry.description || id;
+        const label = typeof labelSource === "string" && labelSource.trim() ? labelSource.trim() : id;
+
+        const preset = {
+          id,
+          label,
+          type: "template",
+          template
+        };
+
+        const iconCandidate = entry.icon || entry.logo || entry.image;
+        if (typeof iconCandidate === "string" && iconCandidate.trim()) {
+          preset.icon = iconCandidate.trim();
+        }
+
+        if (entry.is_default || entry.default) {
+          preset.isDefault = Boolean(entry.is_default || entry.default);
+        }
+
+        const availability = normalizeDynamicAvailability(entry.availability || entry.requirements || null);
+        if (availability) {
+          preset.availability = availability;
+        }
+
+        return preset;
+      }
+
+      function visit(value, originKey) {
+        if (!value || typeof value !== "object") return;
+        if (stack.has(value)) return;
+        stack.add(value);
+
+        if (Array.isArray(value)) {
+          for (const entry of value) {
+            const preset = createPreset(entry, originKey);
+            if (preset) output.push(preset);
+          }
+          stack.delete(value);
+          return;
+        }
+
+        const keys = Object.keys(value);
+        const looksLikeEntry = keys.some(key =>
+          key === "id" || key === "name" || key === "label" || key === "title" || key === "url" ||
+          key === "template" || key === "play_url" || key === "play_url_tpl" || key === "launch_url" || key === "href"
+        );
+
+        if (looksLikeEntry) {
+          const preset = createPreset(value, originKey);
+          if (preset) output.push(preset);
+          stack.delete(value);
+          return;
+        }
+
+        for (const key of keys) {
+          visit(value[key], key);
+        }
+
+        stack.delete(value);
+      }
+
+      visit(raw, "");
+
+      return output;
+    }
+
+    async function fetchEnginePlayers(settings) {
+      const base = String(settings.engineUrl || "").trim();
+      if (!base) return [];
+      const cleanBase = base.replace(/\/+$/, "");
+      const params = new URLSearchParams();
+      params.set("method", "get_available_players");
+      params.set("format", "json");
+      if (settings.accessToken) params.set("token", settings.accessToken);
+
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutId = controller
+        ? setTimeout(() => {
+            try {
+              controller.abort();
+            } catch (error) {}
+          }, 8000)
+        : null;
+
+      try {
+        const response = await fetch(cleanBase + "/server/api/?" + params.toString(), {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          credentials: "same-origin",
+          signal: controller ? controller.signal : undefined
+        });
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status + " al consultar el motor AceStream.");
+        }
+        const text = await response.text();
+        let payload = {};
+        if (text) {
+          try {
+            payload = JSON.parse(text);
+          } catch (error) {
+            throw new Error("Respuesta no válida del motor AceStream (se esperaba JSON).");
+          }
+        }
+        if (payload && payload.error) {
+          if (typeof payload.error === "string") throw new Error(payload.error);
+          if (payload.error && payload.error.message) throw new Error(payload.error.message);
+          throw new Error("El motor AceStream devolvió un error.");
+        }
+        const root = payload && typeof payload === "object"
+          ? (payload.result !== undefined ? payload.result : payload.data !== undefined ? payload.data : payload)
+          : {};
+        return normalizeEnginePlayers(root);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    }
+
+    async function refreshEnginePlayers() {
+      const settings = state.settings || defaultSettings();
+      if (!settings.engineUrl) {
+        setStatus("Configura la URL del motor AceStream en Ajustes para detectar reproductores.", "info");
+        dynamicPlayers = [];
+        resolveAvailablePlayers();
+        return;
+      }
+      if (!settings.accessToken) {
+        setStatus("Introduce el access token del motor AceStream y guarda los ajustes.", "info");
+        dynamicPlayers = [];
+        resolveAvailablePlayers();
+        return;
+      }
+      if (state.engineBusy) return;
+      state.engineBusy = true;
+      setStatus("Consultando motor AceStream...", "loading");
+      try {
+        const fetched = await fetchEnginePlayers(settings);
+        dynamicPlayers = fetched;
+        if (fetched.length) {
+          setStatus("Se detectaron " + fetched.length + " reproductores disponibles.", "success");
+        } else {
+          setStatus("No se detectaron reproductores disponibles.", "info");
+        }
+      } catch (error) {
+        console.warn("Error al obtener reproductores disponibles", error);
+        dynamicPlayers = [];
+        const message = error && error.message ? error.message : "No se pudieron obtener los reproductores disponibles.";
+        setStatus(message, "error");
+      } finally {
+        state.engineBusy = false;
+      }
+      resolveAvailablePlayers();
+    }
+
+    resolveAvailablePlayers().catch(error => {
+      console.warn("No se pudo evaluar disponibilidad de reproductores", error);
+      updateAvailablePlayersState(getAllPlayers());
       applyFilters();
     });
+
+    if (!state.settings.engineUrl) {
+      setStatus("Configura la URL del motor AceStream para detectar reproductores.", "info");
+    } else if (!state.settings.accessToken) {
+      setStatus("Introduce el access token del motor AceStream y guarda los ajustes.", "info");
+    } else {
+      refreshEnginePlayers();
+    }
   </script>
 </body>
 </html>`;
 }
+
+
 
 function main() {
   ensureDirs();
