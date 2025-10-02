@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MontanaOpenAiTV</title>
+  <script src="https://cdn.jsdelivr.net/gh/acestream/ace-script@latest/dist/P2P_Search.min.acestream.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/acestream/ace-script@latest/dist/Magic_Player.acestream.js"></script>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      background-color: #0c0c0c;
+      color: #f0f0f0;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+      color: #f5c518;
+    }
+
+    a {
+      color: #61dafb;
+    }
+
+    .card {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
+      border: none;
+      border-radius: 4px;
+      background-color: #f5c518;
+      color: #0c0c0c;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    input[type="text"],
+    input[type="url"] {
+      width: 100%;
+      max-width: 420px;
+      padding: 0.5rem 0.75rem;
+      margin: 0.25rem 0;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: rgba(255, 255, 255, 0.08);
+      color: inherit;
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    form button {
+      flex-shrink: 0;
+    }
+
+    #acestream-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .acestream-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 0;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .acestream-item:last-child {
+      border-bottom: none;
+    }
+
+    .link-name {
+      font-weight: 600;
+    }
+
+    .link-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .alt-ace {
+      background-color: #61dafb;
+      color: #0c0c0c;
+    }
+
+    .notice {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="card">
+    <h1>MontanaOpenAiTV</h1>
+    <p>Introduce un enlace o ID de AceStream y reproduce al instante sin preocuparte por configurar el motor cada vez.</p>
+    <form id="playForm">
+      <input type="text" id="ace_id" placeholder="acestream://..." aria-label="Enlace o ID de AceStream">
+      <button type="submit" class="btn">Reproducir</button>
+    </form>
+    <p class="notice">Puedes pegar un enlace completo <code>acestream://</code> o solo el ID. El motor configurado se usará automáticamente.</p>
+  </header>
+
+  <section class="card">
+    <h2>Configuración del motor AceStream</h2>
+    <form id="engineForm">
+      <input type="url" id="engineUrl" placeholder="http://127.0.0.1:6878" aria-label="URL del motor AceStream">
+      <input type="text" id="engineTok" placeholder="Access token (opcional)" aria-label="Token de acceso">
+      <button type="submit" class="btn">Guardar</button>
+    </form>
+    <p class="notice">El motor puede recibirse por querystring (<code>?engine=&amp;token=</code>), guardarse aquí o usarse por defecto en <code>http://127.0.0.1:6878</code>. El token solo se añade a la URL HTTP.</p>
+  </section>
+
+  <section class="card">
+    <h2>Playlist AceStream</h2>
+    <div id="acestream-list">Cargando…</div>
+  </section>
+
+  <script src="./assets/js/acestream.js"></script>
+  <script>
+    (function () {
+      const engineInput = document.getElementById('engineUrl');
+      const tokenInput = document.getElementById('engineTok');
+      const storedEngine = localStorage.getItem('engineUrl') || 'http://127.0.0.1:6878';
+      const storedToken = localStorage.getItem('accessToken') || '';
+
+      engineInput.value = storedEngine;
+      tokenInput.value = storedToken;
+
+      document.getElementById('engineForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const url = engineInput.value.trim() || 'http://127.0.0.1:6878';
+        const tok = tokenInput.value.trim();
+        localStorage.setItem('engineUrl', url);
+        if (tok) {
+          localStorage.setItem('accessToken', tok);
+        } else {
+          localStorage.removeItem('accessToken');
+        }
+        if (window.__aceEngineConfig) {
+          window.__aceEngineConfig.engineUrl = url;
+          window.__aceEngineConfig.accessToken = tok;
+        }
+        location.reload();
+      });
+
+      document.getElementById('playForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('ace_id');
+        const rawValue = (input.value || '').trim();
+        if (!rawValue) {
+          alert('Introduce un ID de AceStream');
+          return;
+        }
+        const id = rawValue.replace(/^acestream:\/\//i, '');
+        const engine = (window.__aceEngineConfig && window.__aceEngineConfig.engineUrl) || localStorage.getItem('engineUrl') || 'http://127.0.0.1:6878';
+        const token = (window.__aceEngineConfig && window.__aceEngineConfig.accessToken) || localStorage.getItem('accessToken') || '';
+        const target = `${(engine || 'http://127.0.0.1:6878').replace(/\/+$/, '')}/ace/getstream?id=${encodeURIComponent(id)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+        window.location.href = target;
+      });
+    })();
+  </script>
+</body>
+</html>
