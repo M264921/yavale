@@ -1,4 +1,0 @@
-codex resume 01999fa6-12ea-7252-a636-dd79eb409984
-COMANDOS ACTUALIZAR
-pwsh -File scripts/update-playlist.ps1
-npm run generate:playlist -- "C:\Users\anton\Documents\playlist.m3u8"
