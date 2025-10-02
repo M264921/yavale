@@ -34,6 +34,99 @@
       gap: 0.75rem;
       align-items: center;
     }
+    section.acestream-tool {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.55);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
+    }
+    #engineForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.25rem 0 0.5rem;
+    }
+    #engineForm input {
+      padding: 0.55rem 0.75rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.6);
+      color: inherit;
+      min-width: 240px;
+      flex: 1 1 220px;
+    }
+    #engineForm button {
+      padding: 0.55rem 0.9rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+    }
+    #engineForm button:hover {
+      background: rgba(56, 189, 248, 0.35);
+    }
+    #acestream-list {
+      min-height: 3rem;
+      font-size: 0.95rem;
+      color: #cbd5f5;
+    }
+    .acestream-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .acestream-item {
+      border-radius: 0.85rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 0.85rem;
+      background: rgba(15, 23, 42, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .link-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    .link-url a {
+      color: #38bdf8;
+      word-break: break-all;
+    }
+    .link-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .link-actions .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.45rem 0.85rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: rgba(148, 163, 184, 0.18);
+      color: inherit;
+    }
+    .link-actions .btn.alt-ace {
+      background: rgba(56, 189, 248, 0.22);
+      color: #38bdf8;
+    }
+    .link-actions .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.25);
+    }
     input[type="search"],
     select {
       padding: 0.65rem 0.9rem;
@@ -255,6 +348,25 @@
         background: #f8fafc;
         color: #0f172a;
       }
+      section.acestream-tool {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: 0 12px 24px rgba(100, 116, 139, 0.12);
+      }
+      #engineForm input {
+        background: rgba(248, 250, 252, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+      .link-url a {
+        color: #2563eb;
+      }
+      .link-actions .btn {
+        background: rgba(148, 163, 184, 0.25);
+      }
+      .link-actions .btn.alt-ace {
+        background: rgba(37, 99, 235, 0.15);
+        color: #2563eb;
+      }
       .card {
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid rgba(148, 163, 184, 0.45);
@@ -316,6 +428,17 @@
       <p class="settings-status" id="acestream-status" role="status"></p>
     </details>
   </header>
+  <section class="acestream-tool" aria-labelledby="acestream-tool-heading">
+    <h2 id="acestream-tool-heading">AceStream Playlist</h2>
+    <p>Guarda la URL base de tu motor y el token (opcional) para generar accesos directos a cada canal.</p>
+    <form id="engineForm">
+      <input type="text" id="engineUrl" placeholder="http://127.0.0.1:6878" aria-label="URL del engine" />
+      <input type="text" id="engineTok" placeholder="Access token (opcional)" aria-label="Token de acceso" />
+      <button type="submit">Guardar</button>
+      <button type="button" id="engineTest">Probar engine</button>
+    </form>
+    <div id="acestream-list">Cargando…</div>
+  </section>
   <main id="playlist" role="list"></main>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
 <script>
@@ -827,6 +950,45 @@
         return matchesTerm && matchesGroup;
       });
       render(filtered);
+    }
+  })();
+</script>
+<script src="./assets/js/acestream.js"></script>
+<script>
+  (function () {
+    var form = document.getElementById('engineForm');
+    if (!form) {
+      return;
+    }
+    var urlInput = document.getElementById('engineUrl');
+    var tokenInput = document.getElementById('engineTok');
+    var storedUrl = localStorage.getItem('engineUrl');
+    var storedToken = localStorage.getItem('accessToken');
+    if (storedUrl && urlInput) {
+      urlInput.value = storedUrl;
+    }
+    if (storedToken && tokenInput) {
+      tokenInput.value = storedToken;
+    }
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var urlValue = urlInput ? urlInput.value.trim().replace(/\/+$/, '') : '';
+      var tokenValue = tokenInput ? tokenInput.value.trim() : '';
+      if (urlValue) {
+        localStorage.setItem('engineUrl', urlValue);
+      }
+      localStorage.setItem('accessToken', tokenValue);
+      window.location.reload();
+    });
+    var testButton = document.getElementById('engineTest');
+    if (testButton) {
+      testButton.addEventListener('click', function () {
+        if (typeof window.testAceEngine === 'function') {
+          window.testAceEngine();
+        } else {
+          window.alert('El script de AceStream no está disponible.');
+        }
+      });
     }
   })();
 </script>
