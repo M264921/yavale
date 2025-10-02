@@ -24,3 +24,7 @@ montana-client.conf
 
 # Evitar subir archivos empaquetados
 MontanaOpenAiTV_Repo.zip
+
+scripts/_tmp_init.js
+scripts/_tmp_playlist.html
+scripts/_tmp_server.js
