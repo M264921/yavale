@@ -39,6 +39,7 @@ La categoría «Horus» de `resources/settings.xml` define los siguientes contro
 * `script.module.horus/lib/utils.py` – helpers para leer/escribir ajustes y detectar plataforma.
 * `index.html` y `packages/web-client/html/app_index.html` – interfaz que replica los ajustes básicos de Horus para la app iOS.
 
+
 Referencias directas:
 
 * `default.py`: líneas 360–520, 556–764 (gestión de reproducción y ajustes).【F:script.module.horus/default.py†L360-L520】【F:script.module.horus/default.py†L556-L764】
@@ -46,3 +47,4 @@ Referencias directas:
 * `lib/utils.py`: líneas 232–312 (gestión de ajustes y detección de plataforma).【F:script.module.horus/lib/utils.py†L232-L312】
 * `index.html`: líneas 1–209 (pantalla de reproducción con ajustes equivalentes a Horus).【F:index.html†L1-L209】
 * `packages/web-client/html/app_index.html`: líneas 1–209 (versión incrustada en la app iOS).【F:packages/web-client/html/app_index.html†L1-L209】
+* 
