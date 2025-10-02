@@ -99,11 +99,11 @@ function parseExtInf(line) {
    Player presets por defecto
    ========================= */
 const DEFAULT_PLAYER_PRESETS = [
-  { id: "acestream-engine", label: "Ace Stream (motor local)", type: "acestream" },
+  { id: "acestream-engine", label: "Ace Stream (motor local)", type: "acestream", isDefault: true },
   { id: "vlc", label: "VLC (iOS/macOS)", type: "template", template: "vlc-x-callback://x-callback-url/stream?url={{url}}" },
   { id: "infuse", label: "Infuse", type: "template", template: "infuse://x-callback-url/play?url={{url}}" },
   { id: "kodi", label: "Kodi", type: "template", template: "kodi://play?item={{url}}" },
-  { id: "ace-player-hd", label: "Ace Player HD", type: "template", template: "acestream://{{infohash}}", isDefault: true },
+  { id: "ace-player-hd", label: "Ace Player HD", type: "template", template: "acestream://{{infohash}}" },
   { id: "acecast", label: "AceCast (seleccionar dispositivo)", type: "template", template: "acecast://play?method=fromHash&infohash={{infohash}}&name={{title_encoded}}" },
   { id: "windows-media-player", label: "Reproductor de Windows Media", type: "template", template: "wmplayer.exe?{{url_raw}}" }
 ];
@@ -539,13 +539,45 @@ function buildHtml(entries, playerPresets) {
 
     function extractInfoHash(url) {
       if (!url) return "";
-      if (url.indexOf("acestream://") === 0) return url.slice("acestream://".length);
+      const trimmed = url.trim();
+      if (!trimmed) return "";
+
+      const lower = trimmed.toLowerCase();
+      if (lower.indexOf("acestream://") === 0) {
+        return trimmed.slice("acestream://".length);
+      }
+
       const magnetPrefix = "magnet:?xt=urn:btih:";
-      if (url.indexOf(magnetPrefix) === 0) {
-        const hashSection = url.slice(magnetPrefix.length);
+      if (lower.indexOf(magnetPrefix) === 0) {
+        const hashSection = trimmed.slice(magnetPrefix.length);
         const endIndex = hashSection.indexOf("&");
         return endIndex === -1 ? hashSection : hashSection.slice(0, endIndex);
       }
+
+      const candidateParams = ["id", "content_id", "contentId", "infohash", "infoHash", "hash"];
+      try {
+        const parsed = new URL(trimmed);
+        for (const key of candidateParams) {
+          const value = parsed.searchParams.get(key);
+          if (value) return value;
+        }
+        const pathMatch = parsed.pathname.match(/\/([A-Fa-f0-9]{32,})$/);
+        if (pathMatch && pathMatch[1]) {
+          return pathMatch[1];
+        }
+      } catch (error) {
+        // Ignorado: puede no ser una URL estándar.
+      }
+
+      const fallbackMatch = trimmed.match(/[?&](?:id|content_id|contentId|infohash|infoHash|hash)=([^&#]+)/);
+      if (fallbackMatch && fallbackMatch[1]) {
+        try {
+          return decodeURIComponent(fallbackMatch[1]);
+        } catch (error) {
+          return fallbackMatch[1];
+        }
+      }
+
       return "";
     }
 
@@ -555,6 +587,11 @@ function buildHtml(entries, playerPresets) {
       const title = item.title || "";
 
       if (player.type === "acestream") {
+        const engineUrl = state.settings && state.settings.engineUrl ? state.settings.engineUrl.trim() : "";
+        if (engineUrl && infohash) {
+          const sanitizedBase = engineUrl.replace(/\/+$/, "");
+          return sanitizedBase + "/ace/getstream?id=" + encodeURIComponent(infohash);
+        }
         if (url.indexOf("acestream://") === 0) return url;
         if (url.indexOf("magnet:?xt=urn:btih:") === 0) return infohash ? "acestream://" + infohash : url;
         return url;
@@ -563,7 +600,6 @@ function buildHtml(entries, playerPresets) {
       if (player.type === "template" && player.template) {
         const encoded = encodeURIComponent(url);
         const encodedTitle = encodeURIComponent(title);
-        theEncodedInfo = encodeURIComponent(infohash); // old alias kept
         const encodedInfoHash = encodeURIComponent(infohash);
         return player.template
           .split("{{url}}").join(encoded)
@@ -819,6 +855,8 @@ function buildHtml(entries, playerPresets) {
         setStatus('Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.', "success");
         settingsForm.setAttribute("hidden", "true");
         if (settingsToggle) settingsToggle.setAttribute("aria-expanded", "false");
+        applyFilters();
+        resolveAvailablePlayers();
       });
     }
 
@@ -955,19 +993,6 @@ function buildHtml(entries, playerPresets) {
       return false;
     }
 
-    async function resolveAvailablePlayers() {
-      const all = getAllPlayers();
-      const available = [];
-      for (const player of all) {
-        const availability = player && typeof player === "object" ? player.availability : null;
-        if (!matchesPlatforms(availability)) continue;
-        if (!matchesHostname(availability)) continue;
-        if (await matchesHttpAvailability(availability)) available.push(player);
-      }
-      updateAvailablePlayersState(available);
-      applyFilters();
-    }
-
     function normalizeDynamicAvailability(entry) {
       if (!entry || typeof entry !== "object") return null;
       const availability = {};
@@ -1032,23 +1057,23 @@ function buildHtml(entries, playerPresets) {
     function normalizeEngineTemplate(template) {
       let normalized = String(template);
       const replacements = [
-        [/\%\((?:content_id|infohash)\)s/gi, "{{infohash}}"],
-        [/\%\((?:escaped_content_id|escaped_infohash)\)s/gi, "{{infohash_encoded}}"],
-        [/\%\((?:title)\)s/gi, "{{title}}"],
-        [/\%\((?:escaped_title)\)s/gi, "{{title_encoded}}"],
-        [/\%\((?:url)\)s/gi, "{{url}}"],
-        [/\%\((?:escaped_url)\)s/gi, "{{url}}"],
-        [/\%(?:content_id|infohash)s/gi, "{{infohash}}"],
-        [/\%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
-        [/\%(?:title)s/gi, "{{title}}"],
-        [/\%(?:escaped_title)s/gi, "{{title_encoded}}"],
-        [/\%(?:url)s/gi, "{{url}}"],
-        [/\%(?:escaped_url)s/gi, "{{url}}"],
-        [/\{(?:content_id|infohash)\}/gi, "{{infohash}}"],
-        [/\{(?:escaped_content_id|escaped_infohash)\}/gi, "{{infohash_encoded}}"],
-        [/\{(?:title)\}/gi, "{{title}}"],
-        [/\{(?:escaped_title)\}/gi, "{{title_encoded}}"],
-        [/\{(?:url|escaped_url)\}/gi, "{{url}}"]
+        [/%((?:content_id|infohash))s/gi, "{{infohash}}"],
+        [/%((?:escaped_content_id|escaped_infohash))s/gi, "{{infohash_encoded}}"],
+        [/%((?:title))s/gi, "{{title}}"],
+        [/%((?:escaped_title))s/gi, "{{title_encoded}}"],
+        [/%((?:url))s/gi, "{{url}}"],
+        [/%((?:escaped_url))s/gi, "{{url}}"],
+        [/%(?:content_id|infohash)s/gi, "{{infohash}}"],
+        [/%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
+        [/%(?:title)s/gi, "{{title}}"],
+        [/%(?:escaped_title)s/gi, "{{title_encoded}}"],
+        [/%(?:url)s/gi, "{{url}}"],
+        [/%(?:escaped_url)s/gi, "{{url}}"],
+        [/{(?:content_id|infohash)}/gi, "{{infohash}}"],
+        [/{(?:escaped_content_id|escaped_infohash)}/gi, "{{infohash_encoded}}"],
+        [/{(?:title)}/gi, "{{title}}"],
+        [/{(?:escaped_title)}/gi, "{{title_encoded}}"],
+        [/{(?:url|escaped_url)}/gi, "{{url}}"]
       ];
       for (const replacement of replacements) {
         normalized = normalized.replace(replacement[0], replacement[1]);

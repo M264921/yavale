@@ -111,7 +111,7 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: 2025-10-02T11:08:44.933Z</p>
+    <p>Actualizada: 2025-10-02T12:51:51.905Z</p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group"><option value="">Todos los grupos</option></select>
@@ -250,13 +250,45 @@
 
     function extractInfoHash(url) {
       if (!url) return "";
-      if (url.indexOf("acestream://") === 0) return url.slice("acestream://".length);
+      const trimmed = url.trim();
+      if (!trimmed) return "";
+
+      const lower = trimmed.toLowerCase();
+      if (lower.indexOf("acestream://") === 0) {
+        return trimmed.slice("acestream://".length);
+      }
+
       const magnetPrefix = "magnet:?xt=urn:btih:";
-      if (url.indexOf(magnetPrefix) === 0) {
-        const hashSection = url.slice(magnetPrefix.length);
+      if (lower.indexOf(magnetPrefix) === 0) {
+        const hashSection = trimmed.slice(magnetPrefix.length);
         const endIndex = hashSection.indexOf("&");
         return endIndex === -1 ? hashSection : hashSection.slice(0, endIndex);
       }
+
+      const candidateParams = ["id", "content_id", "contentId", "infohash", "infoHash", "hash"];
+      try {
+        const parsed = new URL(trimmed);
+        for (const key of candidateParams) {
+          const value = parsed.searchParams.get(key);
+          if (value) return value;
+        }
+        const pathMatch = parsed.pathname.match(/\/([A-Fa-f0-9]{32,})$/);
+        if (pathMatch && pathMatch[1]) {
+          return pathMatch[1];
+        }
+      } catch (error) {
+        // Ignorado: puede no ser una URL estándar.
+      }
+
+      const fallbackMatch = trimmed.match(/[?&](?:id|content_id|contentId|infohash|infoHash|hash)=([^&#]+)/);
+      if (fallbackMatch && fallbackMatch[1]) {
+        try {
+          return decodeURIComponent(fallbackMatch[1]);
+        } catch (error) {
+          return fallbackMatch[1];
+        }
+      }
+
       return "";
     }
 
@@ -266,6 +298,11 @@
       const title = item.title || "";
 
       if (player.type === "acestream") {
+        const engineUrl = state.settings && state.settings.engineUrl ? state.settings.engineUrl.trim() : "";
+        if (engineUrl && infohash) {
+          const sanitizedBase = engineUrl.replace(/\/+$/, "");
+          return sanitizedBase + "/ace/getstream?id=" + encodeURIComponent(infohash);
+        }
         if (url.indexOf("acestream://") === 0) return url;
         if (url.indexOf("magnet:?xt=urn:btih:") === 0) return infohash ? "acestream://" + infohash : url;
         return url;
@@ -529,6 +566,8 @@
         setStatus('Ajustes guardados. Pulsa "Detectar reproductores" para actualizar la lista.', "success");
         settingsForm.setAttribute("hidden", "true");
         if (settingsToggle) settingsToggle.setAttribute("aria-expanded", "false");
+        applyFilters();
+        resolveAvailablePlayers();
       });
     }
 
