@@ -869,7 +869,7 @@
     async function fetchEnginePlayers(settings) {
       const base = String(settings.engineUrl || "").trim();
       if (!base) return [];
-      const cleanBase = base.replace(//+$/, "");
+      const cleanBase = base.replace(/\/+$/, "");
       const params = new URLSearchParams();
       params.set("method", "get_available_players");
       params.set("format", "json");

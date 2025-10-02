@@ -1,294 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-
-const projectRoot = path.resolve(__dirname, "..");
-const playlistsDir = path.join(projectRoot, "playlists");
-const docsDir = path.join(projectRoot, "docs");
-
-function resolveSourcePath(argv) {
-  const cliArgs = argv.slice(2);
-  let candidate = process.env.PLAYLIST_SOURCE || "";
-
-  const inputFlagIndex = cliArgs.indexOf("--input");
-  if (inputFlagIndex !== -1 && cliArgs[inputFlagIndex + 1]) {
-    candidate = cliArgs[inputFlagIndex + 1];
-  }
-
-  if (!candidate && cliArgs.length > 0) {
-    candidate = cliArgs[0];
-  }
-
-  if (!candidate) {
-    candidate = path.join(playlistsDir, "playlist.m3u8");
-  }
-
-  return path.resolve(candidate);
-}
-
-function ensureDirs() {
-  if (!fs.existsSync(playlistsDir)) {
-    fs.mkdirSync(playlistsDir, { recursive: true });
-  }
-  if (!fs.existsSync(docsDir)) {
-    fs.mkdirSync(docsDir, { recursive: true });
-  }
-}
-
-function copyPlaylist(sourcePath, targetPath) {
-  if (sourcePath !== targetPath) {
-    fs.copyFileSync(sourcePath, targetPath);
-  }
-}
-
-function parseM3U8(content) {
-  const lines = content.split(/\r?\n/);
-  const entries = [];
-  let pending = null;
-
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line) continue;
-
-    if (line.startsWith("#EXTINF")) {
-      pending = parseExtInf(line);
-      continue;
-    }
-
-    if (line.startsWith("#")) continue;
-
-    if (pending) {
-      pending.url = line;
-      entries.push(pending);
-      pending = null;
-    }
-  }
-
-  return entries;
-}
-
-function parseExtInf(line) {
-  const info = { title: "", attributes: {}, duration: null };
-  const match = line.match(/^#EXTINF:([^,]*),(.*)$/);
-  if (!match) return info;
-
-  const durationPart = match[1].trim();
-  const durationTokens = durationPart ? durationPart.split(/\s+/) : [];
-  const durationValue = durationTokens[0];
-  if (durationValue && !Number.isNaN(Number(durationValue))) {
-    info.duration = Number(durationValue);
-  }
-
-  const attributeSection = durationTokens.slice(1).join(" ");
-  if (attributeSection) {
-    const attrRegex = /([\w-]+)=\"([^\"]*)\"/g;
-    let attrMatch;
-    while ((attrMatch = attrRegex.exec(attributeSection)) !== null) {
-      info.attributes[attrMatch[1]] = attrMatch[2];
-    }
-  }
-
-  info.title = match[2].trim();
-  if (!info.title && info.attributes["tvg-name"]) {
-    info.title = info.attributes["tvg-name"];
-  }
-
-  return info;
-}
-
-/* =========================
-   Player presets por defecto
-   ========================= */
-const DEFAULT_PLAYER_PRESETS = [
-  { id: "acestream-engine", label: "Ace Stream (motor local)", type: "acestream" },
-  { id: "vlc", label: "VLC (iOS/macOS)", type: "template", template: "vlc-x-callback://x-callback-url/stream?url={{url}}" },
-  { id: "infuse", label: "Infuse", type: "template", template: "infuse://x-callback-url/play?url={{url}}" },
-  { id: "kodi", label: "Kodi", type: "template", template: "kodi://play?item={{url}}" },
-  { id: "ace-player-hd", label: "Ace Player HD", type: "template", template: "acestream://{{infohash}}", isDefault: true },
-  { id: "acecast", label: "AceCast (seleccionar dispositivo)", type: "template", template: "acecast://play?method=fromHash&infohash={{infohash}}&name={{title_encoded}}" },
-  { id: "windows-media-player", label: "Reproductor de Windows Media", type: "template", template: "wmplayer.exe?{{url_raw}}" }
-];
-
-/* Normaliza el bloque availability de los presets */
-function sanitizeAvailability(entry, presetId, presetPath) {
-  if (!entry || typeof entry !== "object") return null;
-
-  const availability = {};
-
-  if (Array.isArray(entry.platforms)) {
-    const platforms = entry.platforms
-      .map(v => (typeof v === "string" ? v.trim().toLowerCase() : ""))
-      .filter(Boolean);
-    if (platforms.length) availability.platforms = platforms;
-  }
-
-  if (Array.isArray(entry.excludePlatforms)) {
-    const excludePlatforms = entry.excludePlatforms
-      .map(v => (typeof v === "string" ? v.trim().toLowerCase() : ""))
-      .filter(Boolean);
-    if (excludePlatforms.length) availability.excludePlatforms = excludePlatforms;
-  }
-
-  if (Array.isArray(entry.hostnames)) {
-    const hostnames = entry.hostnames
-      .map(v => (typeof v === "string" ? v.trim().toLowerCase() : ""))
-      .filter(Boolean);
-    if (hostnames.length) availability.hostnames = hostnames;
-  }
-
-  if (Array.isArray(entry.http)) {
-    const http = entry.http
-      .map((candidate, index) => {
-        if (typeof candidate === "string") {
-          const trimmed = candidate.trim();
-          return trimmed
-            ? { url: trimmed, method: "HEAD", timeout: 2500, mode: "no-cors" }
-            : null;
-        }
-        if (!candidate || typeof candidate !== "object") {
-          console.warn(
-            `[generate-playlist] Punto de disponibilidad HTTP inválido en ${presetPath} (preset ${presetId}, posición ${index}).`
-          );
-          return null;
-        }
-
-        const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
-        if (!url) {
-          console.warn(
-            `[generate-playlist] Se ignoró un endpoint HTTP sin URL en ${presetPath} (preset ${presetId}, posición ${index}).`
-          );
-          return null;
-        }
-
-        const endpoint = {
-          url,
-          method:
-            typeof candidate.method === "string" && candidate.method.trim().length
-              ? candidate.method.trim().toUpperCase()
-              : "HEAD",
-          timeout:
-            typeof candidate.timeout === "number" && Number.isFinite(candidate.timeout)
-              ? Math.max(500, candidate.timeout)
-              : 2500,
-          mode:
-            typeof candidate.mode === "string" && candidate.mode.trim().length
-              ? candidate.mode.trim()
-              : "no-cors"
-        };
-
-        if (Array.isArray(candidate.expectStatus)) {
-          const expectStatus = candidate.expectStatus
-            .map(v => Number.parseInt(v, 10))
-            .filter(v => Number.isInteger(v) && v >= 100 && v <= 599);
-          if (expectStatus.length) endpoint.expectStatus = expectStatus;
-        }
-
-        return endpoint;
-      })
-      .filter(Boolean);
-
-    if (http.length) availability.http = http;
-  }
-
-  return Object.keys(availability).length ? availability : null;
-}
-
-function resolvePlayerPresetPath() {
-  const envPath = process.env.PLAYER_PRESETS
-    ? path.resolve(projectRoot, process.env.PLAYER_PRESETS)
-    : null;
-
-  const candidates = [
-    envPath,
-    path.join(playlistsDir, "players.json"),
-    path.join(playlistsDir, "player-presets.json")
-  ].filter(Boolean);
-
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-
-  return null;
-}
-
-function loadPlayerPresets() {
-  const presetPath = resolvePlayerPresetPath();
-  if (!presetPath) return DEFAULT_PLAYER_PRESETS;
-
-  try {
-    const raw = fs.readFileSync(presetPath, "utf8");
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      console.warn(`[generate-playlist] ${presetPath} no contiene un array, usando valores por defecto.`);
-      return DEFAULT_PLAYER_PRESETS;
-    }
-
-    const sanitized = parsed
-      .map((entry, index) => sanitizePlayerPreset(entry, index, presetPath))
-      .filter(Boolean);
-
-    if (!sanitized.length) {
-      console.warn(`[generate-playlist] No se encontraron presets válidos en ${presetPath}, usando valores por defecto.`);
-      return DEFAULT_PLAYER_PRESETS;
-    }
-
-    return sanitized;
-  } catch (error) {
-    console.warn(`[generate-playlist] No se pudo leer ${presetPath}, usando valores por defecto.`, error);
-    return DEFAULT_PLAYER_PRESETS;
-  }
-}
-
-function sanitizePlayerPreset(entry, index, presetPath) {
-  if (!entry || typeof entry !== "object") {
-    console.warn(`[generate-playlist] Preset inválido en ${presetPath} (posición ${index}).`);
-    return null;
-  }
-
-  const id = typeof entry.id === "string" && entry.id.trim();
-  const label = typeof entry.label === "string" && entry.label.trim();
-  const type = typeof entry.type === "string" && entry.type.trim();
-
-  if (!id || !label || !type) {
-    console.warn(`[generate-playlist] Preset omitido en ${presetPath} (posición ${index}) por campos requeridos faltantes.`);
-    return null;
-  }
-
-  const preset = {
-    id,
-    label,
-    type,
-    isDefault: Boolean(entry.isDefault)
-  };
-
-  if (type === "template") {
-    const template =
-      typeof entry.template === "string" && entry.template.trim().length
-        ? entry.template
-        : null;
-    if (!template) {
-      console.warn(`[generate-playlist] Preset ${id} omitido: falta template para tipo template.`);
-      return null;
-    }
-    preset.template = template;
-  }
-
-  if (entry.icon) preset.icon = entry.icon;
-
-  if (entry.availability) {
-    const availability = sanitizeAvailability(entry.availability, id, presetPath);
-    if (availability) preset.availability = availability;
-  }
-
-  return preset;
-}
-
-
-function buildHtml(entries, playerPresets) {
-  const playlistJson = JSON.stringify(entries).replace(/</g, "\u003C");
-  const playersJson = JSON.stringify(playerPresets).replace(/</g, "\u003C");
-  const generatedAt = new Date().toISOString();
-
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -401,7 +111,7 @@ function buildHtml(entries, playerPresets) {
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: ${generatedAt}</p>
+    <p>Actualizada: 2025-10-02T11:08:44.933Z</p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group"><option value="">Todos los grupos</option></select>
@@ -430,8 +140,8 @@ function buildHtml(entries, playerPresets) {
   <main id="playlist" role="list"></main>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
   <script>
-    const playlist = ${playlistJson};
-    const players = ${playersJson};
+    const playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
+    const players = [{"id":"living-room","label":"Sala de estar (Chromecast)","type":"template","isDefault":false,"template":"acecast://device/living-room/play?infohash={{infohash}}&title={{title_encoded}}","availability":{"platforms":["desktop","android"],"http":[{"url":"http://192.168.1.50:8008/setup/eureka_info","method":"GET","timeout":2000,"mode":"no-cors"}]}},{"id":"lg-oled65c4","label":"[LG] webOS TV OLED65C4","type":"template","isDefault":false,"template":"acecast://device/lg-oled65c4/play?infohash={{infohash}}&title={{title_encoded}}","availability":{"platforms":["desktop","android","ios"],"http":[{"url":"http://lgoled65c4.lan:3000/api/ping","method":"HEAD","timeout":2500,"mode":"no-cors"},{"url":"http://192.168.1.80:3000/api/ping","method":"GET","timeout":1500,"mode":"no-cors"}]}},{"id":"aftss","label":"AFTSS (AceCast)","type":"template","isDefault":false,"template":"acecast://device/aftss/play?infohash={{infohash}}&title={{title_encoded}}","availability":{"platforms":["android","desktop"],"http":[{"url":"http://192.168.1.90:6878/server/check","method":"HEAD","timeout":2500,"mode":"no-cors"}]}},{"id":"ace-player-hd","label":"Ace Player HD","type":"template","isDefault":true,"template":"acestream://{{infohash}}"},{"id":"windows-media-player","label":"Reproductor de Windows Media","type":"template","isDefault":false,"template":"wmplayer.exe?{{url_raw}}"}];
 
     const staticPlayers = Array.isArray(players) ? players : [];
     let dynamicPlayers = [];
@@ -1032,23 +742,23 @@ function buildHtml(entries, playerPresets) {
     function normalizeEngineTemplate(template) {
       let normalized = String(template);
       const replacements = [
-        [/\%\((?:content_id|infohash)\)s/gi, "{{infohash}}"],
-        [/\%\((?:escaped_content_id|escaped_infohash)\)s/gi, "{{infohash_encoded}}"],
-        [/\%\((?:title)\)s/gi, "{{title}}"],
-        [/\%\((?:escaped_title)\)s/gi, "{{title_encoded}}"],
-        [/\%\((?:url)\)s/gi, "{{url}}"],
-        [/\%\((?:escaped_url)\)s/gi, "{{url}}"],
-        [/\%(?:content_id|infohash)s/gi, "{{infohash}}"],
-        [/\%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
-        [/\%(?:title)s/gi, "{{title}}"],
-        [/\%(?:escaped_title)s/gi, "{{title_encoded}}"],
-        [/\%(?:url)s/gi, "{{url}}"],
-        [/\%(?:escaped_url)s/gi, "{{url}}"],
-        [/\{(?:content_id|infohash)\}/gi, "{{infohash}}"],
-        [/\{(?:escaped_content_id|escaped_infohash)\}/gi, "{{infohash_encoded}}"],
-        [/\{(?:title)\}/gi, "{{title}}"],
-        [/\{(?:escaped_title)\}/gi, "{{title_encoded}}"],
-        [/\{(?:url|escaped_url)\}/gi, "{{url}}"]
+        [/%((?:content_id|infohash))s/gi, "{{infohash}}"],
+        [/%((?:escaped_content_id|escaped_infohash))s/gi, "{{infohash_encoded}}"],
+        [/%((?:title))s/gi, "{{title}}"],
+        [/%((?:escaped_title))s/gi, "{{title_encoded}}"],
+        [/%((?:url))s/gi, "{{url}}"],
+        [/%((?:escaped_url))s/gi, "{{url}}"],
+        [/%(?:content_id|infohash)s/gi, "{{infohash}}"],
+        [/%(?:escaped_content_id|escaped_infohash)s/gi, "{{infohash_encoded}}"],
+        [/%(?:title)s/gi, "{{title}}"],
+        [/%(?:escaped_title)s/gi, "{{title_encoded}}"],
+        [/%(?:url)s/gi, "{{url}}"],
+        [/%(?:escaped_url)s/gi, "{{url}}"],
+        [/{(?:content_id|infohash)}/gi, "{{infohash}}"],
+        [/{(?:escaped_content_id|escaped_infohash)}/gi, "{{infohash_encoded}}"],
+        [/{(?:title)}/gi, "{{title}}"],
+        [/{(?:escaped_title)}/gi, "{{title_encoded}}"],
+        [/{(?:url|escaped_url)}/gi, "{{url}}"]
       ];
       for (const replacement of replacements) {
         normalized = normalized.replace(replacement[0], replacement[1]);
@@ -1258,35 +968,4 @@ function buildHtml(entries, playerPresets) {
     }
   </script>
 </body>
-</html>`;
-}
-
-
-
-function main() {
-  ensureDirs();
-  const sourcePath = resolveSourcePath(process.argv);
-  const targetPlaylistPath = path.join(playlistsDir, "playlist.m3u8");
-
-  if (!fs.existsSync(sourcePath)) {
-    console.error(`No se encontro la playlist en: ${sourcePath}`);
-    process.exitCode = 1;
-    return;
-  }
-
-  copyPlaylist(sourcePath, targetPlaylistPath);
-
-  const playlistContent = fs.readFileSync(targetPlaylistPath, "utf8");
-  const entries = parseM3U8(playlistContent);
-  const playerPresets = loadPlayerPresets();
-  const html = buildHtml(entries, playerPresets);
-
-  fs.writeFileSync(path.join(docsDir, "index.html"), html, "utf8");
-  fs.writeFileSync(path.join(docsDir, "playlist.json"), JSON.stringify(entries, null, 2), "utf8");
-
-  console.log(`Playlist procesada (${entries.length} entradas).`);
-  console.log(`- Copia en ${targetPlaylistPath}`);
-  console.log(`- Pagina generada en ${path.join(docsDir, "index.html")}`);
-}
-
-main();
+</html>
