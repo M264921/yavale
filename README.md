@@ -2,7 +2,7 @@
 
 Monorepo personal para centralizar todo el ecosistema Montana/YaVale:
 
-- **`packages/web-client`** - cliente web estatico (usable como app web o base para Safari/iOS).
+- **`packages/web-client`** - cliente web estatico (fuente canonica usada por Pages y la app iOS).
 - **`packages/ios-app`** - proyecto Xcode (WebView) para empaquetar el cliente en iPhone/iPad.
 - **`packages/stremio-addon`** - addon Stremio con catalogo AceStream que apunta a tu servidor remoto.
 - **`packages/vpn`** - plantillas y guias para WireGuard (configura tus claves antes de usarlas).
@@ -39,17 +39,36 @@ abran directamente la app nativa en iPhone/iPad.
 En la raiz del repo:
 
 ```bash
-# Servidor estatico del cliente web (sirve packages/web-client)
+# Servidor estatico del cliente web (sirve packages/web-client/public)
 npm run dev:web
 
 # Levanta el addon de Stremio en http://localhost:7000
 npm run dev:addon
 
-# Genera/actualiza GitHub Pages desde una playlist M3U8
-npm run generate:playlist -- "C:\\Users\\anton\\Documents\\playlist.m3u8"
+# Genera HTML + playlist.json desde una M3U8 y sincroniza todo
+npm run generate:playlist -- "C\\Users\\anton\\Documents\\playlist.m3u8"
+
+# Solo sincroniza (docs/ + app iOS) cuando edites recursos a mano
+npm run sync:webapp
 ```
 
 > El flag `--` permite pasar la ruta como primer argumento. Si omites la ruta, usara `playlists/playlist.m3u8`.
+
+### Normalizar enlaces AceStream a tu motor remoto
+
+- **`scripts/normalize-acestream.ps1`** recorre todo el repo y reemplaza cualquier `acestream://<HASH>` o URLs antiguas de `/ace/getstream`/`/ace/manifest.m3u8` para que apunten a tu engine remoto con token.
+- Abre el script y ajusta las variables del bloque **CONFIG**:
+  - `$RepoRoot`: ruta local del repositorio.
+  - `$EngineHost`: base del engine (por ejemplo `http://80.39.151.195:6878`).
+  - `$Token`: token actual del engine.
+  - `$Extensions`: extensiones que quieres analizar.
+- Ejecuta el script desde PowerShell 5.1+ o PowerShell Core:
+
+  ```powershell
+  pwsh -File scripts/normalize-acestream.ps1
+  ```
+
+- El script genera copias `.bak` de cada archivo modificado y muestra un resumen con el número de coincidencias para que puedas revisar los cambios antes de hacer commit.
 
 Dentro de `packages/stremio-addon/` instala dependencias la primera vez:
 
@@ -69,7 +88,8 @@ Variables de entorno soportadas en el addon:
 1. Exporta o actualiza tu lista en `C:\Users\anton\Documents\playlist.m3u8` (o la ruta que prefieras).
 2. Ejecuta `npm run generate:playlist -- "ruta/a/tu/playlist.m3u8"`.
    - El script copia el fichero a `playlists/playlist.m3u8`.
-   - Renderiza `docs/index.html` + `docs/playlist.json` con un grid filtrable de canales.
+   - Genera `packages/web-client/public/index.html` + `packages/web-client/public/playlist.json`.
+   - Sincroniza `docs/` y `packages/ios-app/WebBundle/` con esos archivos.
 3. Haz commit y push. En GitHub, configura **Settings -> Pages -> Source: `main` / carpeta `/docs`**.
 4. Tu pagina quedara disponible en `https://<tu-usuario>.github.io/<repo>/` con un buscador y botones de copia.
 
@@ -87,14 +107,11 @@ Variables de entorno soportadas en el addon:
     - `{{infohash}}` / `{{infohash_encoded}}` - hash AceStream si el enlace lo incluye.
     - `{{title}}` / `{{title_encoded}}` - titulo del canal.
   - `icon` (opcional): ruta o URL a un icono de 18x18px para mostrar junto al nombre.
-codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-kzlk2n
 - Usa el bloque `availability` para mostrar cada reproductor solo cuando tenga sentido:
   - `platforms`: lista de etiquetas admitidas (`windows`, `mac`, `linux`, `ios`, `android`, `webos`, `smart-tv`, `desktop`, `mobile`, `tablet`, `safari`, `chrome`, `firefox`, etc.). Si ninguna coincide con tu dispositivo actual, ese reproductor se oculta.
   - `excludePlatforms`: etiquetas que deben ocultar el reproductor si el navegador pertenece a ellas.
   - `hostnames`: restringe a dominios concretos (útil si solo quieres que aparezca cuando entras desde una URL interna como `playlist.casita.local`).
   - `http`: lista de URLs (string o `{ url, method, timeout, mode, expectStatus }`) que el navegador intentará consultar. Solo si al menos una responde, el reproductor se mostrará. Esto permite detectar dispositivos en tu misma red (por ejemplo, `http://192.168.1.80:3000/ping`).
-
- main
 - Opcional: crea otros presets en un fichero alternativo y ejecútalo con `PLAYER_PRESETS=mi-archivo.json npm run generate:playlist`.
 - Cuando uses la variable `PLAYER_PRESETS`, la ruta se resuelve respecto a la raiz del repo (puedes pasar rutas absolutas si lo prefieres).
 - El script de PowerShell `scripts/update-playlist.ps1` acepta `-PlayerPresetPath "ruta\a\mis-presets.json"` para automatizar este override.
@@ -104,18 +121,19 @@ codex/check-codex-resume-0199a171-5bae-7af0-abb3-f504f937df60-kzlk2n
 
 ```
 packages/
-  ios-app/             # Proyecto Xcode (App WebView)
+  ios-app/             # Proyecto Xcode (App WebView) + WebBundle sincronizado
   stremio-addon/       # Addon Stremio (Node.js)
-  web-client/          # HTML/JS estatico del reproductor web
+  web-client/          # Fuente canonica (public/) de la web y la app nativa
   vpn/                 # Plantillas y guias WireGuard
 scripts/
   dev-server.js        # Servidor estatico para el cliente web
   generate-playlist-page.js
+  normalize-acestream.ps1 # Normaliza enlaces AceStream al motor remoto
 playlists/
   playlist.m3u8        # Ultima copia versionada de tu lista
   player-presets.json  # Ejemplo de configuracion para el selector de reproductor
 docs/
-  index.html           # Pagina publica (GitHub Pages)
+  index.html           # Copia generada para GitHub Pages
   playlist.json        # Datos parseados (util para APIs/automatizaciones)
 ```
 

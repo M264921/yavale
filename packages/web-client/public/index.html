@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Playlist AceStream</title>
+  <style>
+    :root {
+      color-scheme: dark light;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 3vw, 2.3rem);
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    section.acestream-tool {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.55);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
+    }
+    #engineForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.25rem 0 0.5rem;
+    }
+    #engineForm input {
+      padding: 0.55rem 0.75rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.6);
+      color: inherit;
+      min-width: 240px;
+      flex: 1 1 220px;
+    }
+    #engineForm button {
+      padding: 0.55rem 0.9rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+    }
+    #engineForm button:hover {
+      background: rgba(56, 189, 248, 0.35);
+    }
+    #acestream-list {
+      min-height: 3rem;
+      font-size: 0.95rem;
+      color: #cbd5f5;
+    }
+    .acestream-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .acestream-item {
+      border-radius: 0.85rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 0.85rem;
+      background: rgba(15, 23, 42, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .link-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    .link-url a {
+      color: #38bdf8;
+      word-break: break-all;
+    }
+    .link-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .link-actions .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.45rem 0.85rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: rgba(148, 163, 184, 0.18);
+      color: inherit;
+    }
+    .link-actions .btn.alt-ace {
+      background: rgba(56, 189, 248, 0.22);
+      color: #38bdf8;
+    }
+    .link-actions .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.25);
+    }
+    input[type="search"],
+    select {
+      padding: 0.65rem 0.9rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.65);
+      color: inherit;
+    }
+    input[type="search"] {
+      flex: 1 1 250px;
+    }
+    select {
+      flex: 0 1 220px;
+    }
+    details.settings {
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 0.85rem;
+      padding: 0.75rem 1rem;
+    }
+    details.settings summary {
+      cursor: pointer;
+      font-weight: 600;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    details.settings summary::-webkit-details-marker {
+      display: none;
+    }
+    .settings-form {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .settings-form .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .settings-form label {
+      font-size: 0.85rem;
+      color: #cbd5f5;
+    }
+    .settings-form input {
+      padding: 0.55rem 0.75rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.6);
+      color: inherit;
+    }
+    .settings-note {
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      color: #94a3b8;
+    }
+    .settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .settings-actions button {
+      padding: 0.55rem 0.9rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+    }
+    .settings-actions button:hover {
+      background: rgba(56, 189, 248, 0.35);
+    }
+    .settings-status {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      min-height: 1.2rem;
+    }
+    .settings-status.success {
+      color: #4ade80;
+    }
+    .settings-status.info {
+      color: #38bdf8;
+    }
+    .settings-status.warning {
+      color: #fbbf24;
+    }
+    .settings-status.error {
+      color: #f87171;
+    }
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
+      border-radius: 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 15px 25px rgba(15, 23, 42, 0.25);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 28px rgba(15, 23, 42, 0.3);
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .meta span {
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.15);
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .actions a,
+    .actions button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      color: #0f172a;
+      background: #38bdf8;
+    }
+    .actions button.copy,
+    .actions button.share {
+      background: rgba(148, 163, 184, 0.15);
+      color: inherit;
+    }
+    details.player-picker {
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 0.5rem;
+    }
+    details.player-picker summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 600;
+      padding: 0.3rem 0.4rem;
+    }
+    details.player-picker summary::-webkit-details-marker {
+      display: none;
+    }
+    .player-picker__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin: 0.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .player-picker__heading {
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    .player-picker__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.6rem;
+      text-decoration: none;
+      transition: transform 120ms ease;
+    }
+    .player-picker__link[data-kind="static"] {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+    }
+    .player-picker__link[data-kind="dynamic"] {
+      background: rgba(74, 222, 128, 0.16);
+      color: #4ade80;
+    }
+    .player-picker__link:hover {
+      transform: translateY(-1px);
+    }
+    .player-picker__hint {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .player-picker__error {
+      color: #f87171;
+    }
+    footer {
+      font-size: 0.8rem;
+      color: #64748b;
+      text-align: center;
+      margin-top: auto;
+    }
+    @media (prefers-color-scheme: light) {
+      body {
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      section.acestream-tool {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: 0 12px 24px rgba(100, 116, 139, 0.12);
+      }
+      #engineForm input {
+        background: rgba(248, 250, 252, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+      .link-url a {
+        color: #2563eb;
+      }
+      .link-actions .btn {
+        background: rgba(148, 163, 184, 0.25);
+      }
+      .link-actions .btn.alt-ace {
+        background: rgba(37, 99, 235, 0.15);
+        color: #2563eb;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        box-shadow: 0 15px 25px rgba(100, 116, 139, 0.15);
+      }
+      .actions a,
+      .actions button {
+        color: white;
+        background: #2563eb;
+      }
+      .actions button.copy,
+      .actions button.share {
+        background: rgba(148, 163, 184, 0.2);
+        color: inherit;
+      }
+      .player-picker__link[data-kind="static"] {
+        color: #2563eb;
+        background: rgba(37, 99, 235, 0.12);
+      }
+      .player-picker__link[data-kind="dynamic"] {
+        color: #15803d;
+        background: rgba(74, 222, 128, 0.2);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Playlist AceStream</h1>
+    <p>Actualizada: 2025-10-01T23:50:18.532Z</p>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
+      <select id="group">
+        <option value="">Todos los grupos</option>
+      </select>
+    </div>
+    <details class="settings">
+      <summary>Configurar AceStream (opcional)</summary>
+      <form id="acestream-form" class="settings-form">
+        <div class="field">
+          <label for="acestream-base">Host o URL base</label>
+          <input id="acestream-base" name="baseUrl" type="text" placeholder="http://127.0.0.1:6878" />
+        </div>
+        <div class="field">
+          <label for="acestream-webui">Token WebUI (opcional)</label>
+          <input id="acestream-webui" name="webUiToken" type="text" placeholder="qdfEbt9IzPwB" />
+        </div>
+        <div class="field">
+          <label for="acestream-access">Access token del engine</label>
+          <input id="acestream-access" name="accessToken" type="text" placeholder="4ebcfe..." />
+        </div>
+      </form>
+      <p class="settings-note">El motor de AceStream suele escuchar en http://127.0.0.1:6878. Si abres esta pagina desde HTTPS, el navegador puede bloquear las peticiones.</p>
+      <div class="settings-actions">
+        <button type="button" id="acestream-save">Guardar</button>
+        <button type="button" id="acestream-fetch">Obtener token desde WebUI</button>
+        <button type="button" id="acestream-refresh">Probar conexion</button>
+      </div>
+      <p class="settings-status" id="acestream-status" role="status"></p>
+    </details>
+  </header>
+  <section class="acestream-tool" aria-labelledby="acestream-tool-heading">
+    <h2 id="acestream-tool-heading">AceStream Playlist</h2>
+    <p>Guarda la URL base de tu motor y el token (opcional) para generar accesos directos a cada canal.</p>
+    <form id="engineForm">
+      <input type="text" id="engineUrl" placeholder="http://127.0.0.1:6878" aria-label="URL del engine" />
+      <input type="text" id="engineTok" placeholder="Access token (opcional)" aria-label="Token de acceso" />
+      <button type="submit">Guardar</button>
+      <button type="button" id="engineTest">Probar engine</button>
+    </form>
+    <div id="acestream-list">Cargando…</div>
+  </section>
+  <main id="playlist" role="list"></main>
+  <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
+<script>
+  (function () {
+    const playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
+    const staticPlayers = [{"id":"acestream","label":"Ace Stream (engine local)","type":"acestream"},{"id":"vlc","label":"VLC (iOS/macOS)","type":"template","template":"vlc-x-callback://x-callback-url/stream?url={{url}}"},{"id":"infuse","label":"Infuse","type":"template","template":"infuse://x-callback-url/play?url={{url}}"},{"id":"kodi","label":"Kodi","type":"template","template":"kodi://play?item={{url}}"}];
+    const settingsKey = "yavale_acestream_settings";
+    const CACHE_TTL = 15000;
+    const playlistContainer = document.getElementById("playlist");
+    const searchInput = document.getElementById("search");
+    const groupFilter = document.getElementById("group");
+    const settingsForm = document.getElementById("acestream-form");
+    const saveButton = document.getElementById("acestream-save");
+    const fetchButton = document.getElementById("acestream-fetch");
+    const refreshButton = document.getElementById("acestream-refresh");
+    const statusNode = document.getElementById("acestream-status");
+    const state = {
+      settings: loadSettings(),
+      cache: new Map(),
+      statusTimer: null
+    };
+    state.settings.baseUrl = normalizeBaseUrl(state.settings.baseUrl);
+    saveSettings(state.settings);
+    writeSettingsToForm(state.settings);
+    populateFilterOptions();
+    initSettingsWarnings();
+    render(playlist);
+    if (searchInput) {
+      searchInput.addEventListener("input", applyFilters);
+    }
+    if (groupFilter) {
+      groupFilter.addEventListener("change", applyFilters);
+    }
+    if (saveButton) {
+      saveButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        const formSettings = readSettingsFromForm();
+        formSettings.baseUrl = normalizeBaseUrl(formSettings.baseUrl);
+        saveSettings(formSettings);
+        writeSettingsToForm(state.settings);
+        setStatus("Ajustes guardados.", "success");
+      });
+    }
+    if (fetchButton) {
+      fetchButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        const formSettings = readSettingsFromForm();
+        formSettings.baseUrl = normalizeBaseUrl(formSettings.baseUrl);
+        saveSettings(formSettings);
+        fetchParamsFromWebUi().then(function (params) {
+          if (params && params.access_token) {
+            const updated = Object.assign({}, state.settings, { accessToken: params.access_token });
+            saveSettings(updated);
+            writeSettingsToForm(state.settings);
+            setStatus("Token actualizado desde AceStream WebUI.", "success");
+          } else {
+            setStatus("No se encontró access token en la WebUI.", "warning");
+          }
+        }).catch(function (error) {
+          setStatus(error && error.message ? error.message : "Error al leer la WebUI.", "error");
+        });
+      });
+    }
+    if (refreshButton) {
+      refreshButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        const formSettings = readSettingsFromForm();
+        formSettings.baseUrl = normalizeBaseUrl(formSettings.baseUrl);
+        saveSettings(formSettings);
+        const firstPlayable = playlist.find(function (item) {
+          return Boolean(extractInfoHash(item.url));
+        });
+        if (!firstPlayable) {
+          setStatus("No hay entradas con hash para probar.", "info");
+          return;
+        }
+        const infohash = extractInfoHash(firstPlayable.url);
+        loadAvailablePlayers(infohash, { force: true }).then(function (players) {
+          if (players.length) {
+            setStatus("Se detectaron " + players.length + " reproductores.", "success");
+          } else {
+            setStatus("No se detectaron reproductores disponibles.", "info");
+          }
+        }).catch(function (error) {
+          setStatus(error && error.message ? error.message : "Error en la conexion con AceStream.", "error");
+        });
+      });
+    }
+    function defaultSettings() {
+      return { baseUrl: "http://127.0.0.1:6878", accessToken: "", webUiToken: "" };
+    }
+    function loadSettings() {
+      try {
+        const raw = window.localStorage.getItem(settingsKey);
+        if (!raw) {
+          return defaultSettings();
+        }
+        const parsed = JSON.parse(raw);
+        return Object.assign(defaultSettings(), parsed);
+      } catch (error) {
+        console.warn("No se pudieron cargar los ajustes almacenados", error);
+        return defaultSettings();
+      }
+    }
+    function saveSettings(nextSettings) {
+      state.settings = Object.assign(defaultSettings(), nextSettings);
+      state.cache.clear();
+      try {
+        window.localStorage.setItem(settingsKey, JSON.stringify(state.settings));
+      } catch (error) {
+        console.warn("No se pudo guardar la configuración", error);
+      }
+    }
+    function writeSettingsToForm(settings) {
+      if (!settingsForm) {
+        return;
+      }
+      if (settingsForm.elements["baseUrl"]) {
+        settingsForm.elements["baseUrl"].value = settings.baseUrl || "";
+      }
+      if (settingsForm.elements["webUiToken"]) {
+        settingsForm.elements["webUiToken"].value = settings.webUiToken || "";
+      }
+      if (settingsForm.elements["accessToken"]) {
+        settingsForm.elements["accessToken"].value = settings.accessToken || "";
+      }
+    }
+    function readSettingsFromForm() {
+      if (!settingsForm) {
+        return state.settings;
+      }
+      const formData = new FormData(settingsForm);
+      return {
+        baseUrl: (formData.get("baseUrl") || "").trim() || state.settings.baseUrl || defaultSettings().baseUrl,
+        webUiToken: (formData.get("webUiToken") || "").trim(),
+        accessToken: (formData.get("accessToken") || "").trim()
+      };
+    }
+    function normalizeBaseUrl(input) {
+      let url = input || defaultSettings().baseUrl;
+      if (url.indexOf("://") === -1) {
+        url = "http://" + url;
+      }
+      while (url.length > 0 && url.charAt(url.length - 1) === "/") {
+        url = url.slice(0, -1);
+      }
+      return url;
+    }
+    function setStatus(message, type) {
+      if (!statusNode) {
+        return;
+      }
+      const statusType = type || "info";
+      statusNode.textContent = message || "";
+      statusNode.className = "settings-status " + statusType;
+      if (state.statusTimer) {
+        window.clearTimeout(state.statusTimer);
+        state.statusTimer = null;
+      }
+      if (message) {
+        const duration = statusType === "error" ? 8000 : 4000;
+        state.statusTimer = window.setTimeout(function () {
+          statusNode.textContent = "";
+          statusNode.className = "settings-status";
+        }, duration);
+      }
+    }
+    function initSettingsWarnings() {
+      if (window.location.protocol === "https:" && state.settings.baseUrl.indexOf("http://") === 0) {
+        setStatus("Aviso: algunos navegadores bloquean peticiones HTTP a AceStream desde paginas HTTPS.", "warning");
+      }
+    }
+    function extractInfoHash(url) {
+      if (!url) {
+        return null;
+      }
+      if (url.indexOf("acestream://") === 0) {
+        return url.slice("acestream://".length);
+      }
+      if (url.indexOf("magnet:?") === 0) {
+        const match = url.match(/xt=urn:btih:([^&]+)/i);
+        return match ? match[1] : null;
+      }
+      return null;
+    }
+    function buildStaticHref(player, url) {
+      if (player.type === "acestream") {
+        if (url.indexOf("acestream://") === 0) {
+          return url;
+        }
+        if (url.indexOf("magnet:?xt=urn:btih:") === 0) {
+          const hash = extractInfoHash(url);
+          return hash ? "acestream://" + hash : "";
+        }
+        return "";
+      }
+      if (player.type === "template" && player.template) {
+        const encoded = encodeURIComponent(url);
+        return player.template.replace(/{{url}}/g, encoded).replace(/{{url_raw}}/g, url);
+      }
+      return url;
+    }
+    function fetchParamsFromWebUi() {
+      const token = (state.settings.webUiToken || "").trim();
+      if (!token) {
+        return Promise.reject(new Error("Indica el token WebUI antes de continuar."));
+      }
+      const base = normalizeBaseUrl(state.settings.baseUrl);
+      return fetch(base + "/webui/app/" + encodeURIComponent(token) + "/server", { mode: "cors", credentials: "omit" })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status + " al leer la WebUI.");
+          }
+          return response.text();
+        })
+        .then(function (html) {
+          const match = html.match(/params\s*=\s*(\{[\s\S]*?\})\s*,/);
+          if (!match) {
+            throw new Error("No se encontró la configuración en la WebUI.");
+          }
+          const parsed = JSON.parse(match[1]);
+          state.settings = Object.assign({}, state.settings, { accessToken: parsed.access_token || state.settings.accessToken });
+          saveSettings(state.settings);
+          return parsed;
+        });
+    }
+    function apiRequest(params) {
+      if (!state.settings.accessToken) {
+        return Promise.reject(new Error("Configura el access token de AceStream."));
+      }
+      const base = normalizeBaseUrl(state.settings.baseUrl);
+      const url = new URL("/server/api/", base);
+      Object.keys(params).forEach(function (key) {
+        const value = params[key];
+        if (value !== undefined && value !== null && value !== "") {
+          url.searchParams.set(key, value);
+        }
+      });
+      url.searchParams.set("token", state.settings.accessToken);
+      return fetch(url.toString(), { method: "GET", mode: "cors", credentials: "omit" })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          if (data && data.error) {
+            throw new Error(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
+          }
+          return data && data.result ? data.result : {};
+        });
+    }
+    function loadAvailablePlayers(infohash, options) {
+      const opts = options || {};
+      if (!infohash) {
+        return Promise.resolve([]);
+      }
+      const cached = state.cache.get(infohash);
+      const now = Date.now();
+      if (!opts.force && cached && now - cached.timestamp < CACHE_TTL) {
+        return Promise.resolve(cached.players);
+      }
+      return apiRequest({ method: "get_available_players", infohash: infohash }).then(function (result) {
+        const players = Array.isArray(result.players) ? result.players : [];
+        state.cache.set(infohash, { players: players, timestamp: now });
+        return players;
+      });
+    }
+    function renderStaticPlayers(listEl, item) {
+      if (!staticPlayers.length) {
+        return;
+      }
+      const heading = document.createElement("li");
+      heading.className = "player-picker__heading";
+      heading.textContent = "Aplicaciones locales";
+      listEl.appendChild(heading);
+      staticPlayers.forEach(function (player) {
+        const href = buildStaticHref(player, item.url);
+        if (!href) {
+          return;
+        }
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.className = "player-picker__link";
+        link.dataset.kind = "static";
+        link.textContent = player.label;
+        link.href = href;
+        if (player.type === "acestream") {
+          link.rel = "noreferrer";
+        } else {
+          link.target = "_blank";
+          link.rel = "noreferrer";
+        }
+        li.appendChild(link);
+        listEl.appendChild(li);
+      });
+    }
+    function renderDynamicPlayers(listEl, item) {
+      const infohash = extractInfoHash(item.url);
+      if (!state.settings.accessToken) {
+        const hint = document.createElement("li");
+        hint.className = "player-picker__hint";
+        hint.textContent = "Añade tu access token de AceStream para listar dispositivos.";
+        listEl.appendChild(hint);
+        return;
+      }
+      if (!infohash) {
+        const hint = document.createElement("li");
+        hint.className = "player-picker__hint";
+        hint.textContent = "Este enlace no incluye un infohash reconocible.";
+        listEl.appendChild(hint);
+        return;
+      }
+      const heading = document.createElement("li");
+      heading.className = "player-picker__heading";
+      heading.textContent = "Dispositivos detectados";
+      listEl.appendChild(heading);
+      const status = document.createElement("li");
+      status.className = "player-picker__hint";
+      status.textContent = "Buscando reproductores...";
+      listEl.appendChild(status);
+      loadAvailablePlayers(infohash).then(function (players) {
+        if (listEl.contains(status)) {
+          listEl.removeChild(status);
+        }
+        if (!players.length) {
+          const empty = document.createElement("li");
+          empty.className = "player-picker__hint";
+          empty.textContent = "No se detectaron dispositivos disponibles.";
+          listEl.appendChild(empty);
+          return;
+        }
+        players.forEach(function (player) {
+          const li = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = "#";
+          link.className = "player-picker__link";
+          link.dataset.kind = "dynamic";
+          link.textContent = player.name + (player.protocol ? " (" + player.protocol + ")" : "");
+          link.addEventListener("click", function (event) {
+            event.preventDefault();
+            openDynamicPlayer(player, infohash, item.title);
+          });
+          li.appendChild(link);
+          listEl.appendChild(li);
+        });
+      }).catch(function (error) {
+        status.className = "player-picker__hint player-picker__error";
+        status.textContent = error && error.message ? error.message : "No se pudieron listar los reproductores.";
+      });
+    }
+    function openDynamicPlayer(player, infohash, title) {
+      if (player.type === "aircast") {
+        openAircastPlayer(player, infohash);
+        return;
+      }
+      apiRequest({ method: "open_in_player", player_id: player.id, infohash: infohash }).then(function () {
+        const channelName = title || "el canal";
+        setStatus("Reproductor \"" + player.name + "\" recibió la orden de reproducir " + channelName + ".", "success");
+      }).catch(function (error) {
+        setStatus(error && error.message ? error.message : "No se pudo abrir el reproductor.", "error");
+      });
+    }
+    function openAircastPlayer(player, infohash) {
+      const base = normalizeBaseUrl(state.settings.baseUrl);
+      const url = new URL("/remote-control", base);
+      url.searchParams.set("device_id", player.id);
+      url.searchParams.set("autoplay", "yes");
+      if (infohash) {
+        url.searchParams.set("infohash", infohash);
+      }
+      window.open(url.toString(), "_blank", "noopener");
+      setStatus("Abriendo panel remoto para \"" + player.name + "\".", "info");
+    }
+    function populateFilterOptions() {
+      if (!groupFilter) {
+        return;
+      }
+      const groups = Array.from(new Set(playlist.map(function (item) {
+        return item.attributes && item.attributes["group-title"];
+      }).filter(function (value) {
+        return Boolean(value);
+      }))).sort();
+      groups.forEach(function (group) {
+        const option = document.createElement("option");
+        option.value = group;
+        option.textContent = group;
+        groupFilter.appendChild(option);
+      });
+    }
+    function render(list) {
+      if (!playlistContainer) {
+        return;
+      }
+      playlistContainer.innerHTML = "";
+      if (!list.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "No hay canales que coincidan con el filtro.";
+        playlistContainer.appendChild(empty);
+        return;
+      }
+      list.forEach(function (item) {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.setAttribute("role", "listitem");
+        const title = document.createElement("h2");
+        title.textContent = item.title || "Canal sin nombre";
+        card.appendChild(title);
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        if (item.attributes && item.attributes["group-title"]) {
+          const badge = document.createElement("span");
+          badge.textContent = item.attributes["group-title"];
+          meta.appendChild(badge);
+        }
+        if (item.attributes && item.attributes["tvg-id"]) {
+          const badge = document.createElement("span");
+          badge.textContent = "ID: " + item.attributes["tvg-id"];
+          meta.appendChild(badge);
+        }
+        if (item.duration !== null && item.duration !== undefined) {
+          const badge = document.createElement("span");
+          badge.textContent = item.duration === -1 ? "Duración: ilimitada" : "Duración: " + item.duration + "s";
+          meta.appendChild(badge);
+        }
+        card.appendChild(meta);
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        const playLink = document.createElement("a");
+        playLink.className = "play";
+        playLink.href = item.url;
+        playLink.textContent = "Reproducir";
+        playLink.target = "_blank";
+        playLink.rel = "noreferrer";
+        actions.appendChild(playLink);
+        const picker = document.createElement("details");
+        picker.className = "player-picker";
+        const summary = document.createElement("summary");
+        summary.textContent = "Seleccionar reproductor";
+        picker.appendChild(summary);
+        const listEl = document.createElement("ul");
+        listEl.className = "player-picker__list";
+        picker.appendChild(listEl);
+        picker.addEventListener("toggle", function () {
+          if (!picker.open) {
+            return;
+          }
+          listEl.innerHTML = "";
+          renderStaticPlayers(listEl, item);
+          renderDynamicPlayers(listEl, item);
+        });
+        actions.appendChild(picker);
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "copy";
+        copyBtn.textContent = "Copiar enlace";
+        copyBtn.addEventListener("click", function () {
+          navigator.clipboard.writeText(item.url).then(function () {
+            copyBtn.textContent = "Copiado";
+            window.setTimeout(function () {
+              copyBtn.textContent = "Copiar enlace";
+            }, 1500);
+          }).catch(function () {
+            copyBtn.textContent = "Error";
+            window.setTimeout(function () {
+              copyBtn.textContent = "Copiar enlace";
+            }, 1500);
+          });
+        });
+        actions.appendChild(copyBtn);
+        const shareBtn = document.createElement("button");
+        shareBtn.type = "button";
+        shareBtn.className = "share";
+        shareBtn.textContent = "Compartir";
+        shareBtn.addEventListener("click", function () {
+          const shareData = {
+            title: item.title || "Canal AceStream",
+            text: item.title || "Canal AceStream",
+            url: item.url
+          };
+          if (navigator.share) {
+            navigator.share(shareData).catch(function (error) {
+              console.warn("Share cancelado", error);
+            });
+            return;
+          }
+          navigator.clipboard.writeText(item.url).then(function () {
+            shareBtn.textContent = "Copiado";
+            window.setTimeout(function () {
+              shareBtn.textContent = "Compartir";
+            }, 1500);
+          }).catch(function () {
+            alert("No se pudo compartir ni copiar este enlace");
+          });
+        });
+        actions.appendChild(shareBtn);
+        card.appendChild(actions);
+        playlistContainer.appendChild(card);
+      });
+    }
+    function applyFilters() {
+      const term = searchInput ? searchInput.value.toLowerCase() : "";
+      const group = groupFilter ? groupFilter.value : "";
+      const filtered = playlist.filter(function (item) {
+        const matchesTerm = term ? (item.title && item.title.toLowerCase().indexOf(term) !== -1) ||
+          (item.attributes && JSON.stringify(item.attributes).toLowerCase().indexOf(term) !== -1) : true;
+        const matchesGroup = group ? item.attributes && item.attributes["group-title"] === group : true;
+        return matchesTerm && matchesGroup;
+      });
+      render(filtered);
+    }
+  })();
+</script>
+<script src="./assets/js/acestream.js"></script>
+<script>
+  (function () {
+    var form = document.getElementById('engineForm');
+    if (!form) {
+      return;
+    }
+    var urlInput = document.getElementById('engineUrl');
+    var tokenInput = document.getElementById('engineTok');
+    var storedUrl = localStorage.getItem('engineUrl');
+    var storedToken = localStorage.getItem('accessToken');
+    if (storedUrl && urlInput) {
+      urlInput.value = storedUrl;
+    }
+    if (storedToken && tokenInput) {
+      tokenInput.value = storedToken;
+    }
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var urlValue = urlInput ? urlInput.value.trim().replace(/\/+$/, '') : '';
+      var tokenValue = tokenInput ? tokenInput.value.trim() : '';
+      if (urlValue) {
+        localStorage.setItem('engineUrl', urlValue);
+      }
+      localStorage.setItem('accessToken', tokenValue);
+      window.location.reload();
+    });
+    var testButton = document.getElementById('engineTest');
+    if (testButton) {
+      testButton.addEventListener('click', function () {
+        if (typeof window.testAceEngine === 'function') {
+          window.testAceEngine();
+        } else {
+          window.alert('El script de AceStream no está disponible.');
+        }
+      });
+    }
+  })();
+</script>
+</body>
+</html>
