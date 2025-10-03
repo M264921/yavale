@@ -26,8 +26,18 @@ $reOldHls  = '/ace/manifest\.m3u8\?id=(?<id>[A-Fa-f0-9]{40})(?:&[^""\s<>]*)?'
 
 # Función que, dado un ID, devuelve la URL HLS final con token
 function New-HlsUrl([string]$id) {
+
   $t = [System.Web.HttpUtility]::UrlEncode($Token)
   return "$EngineBase/ace/manifest.m3u8?id=$id" + ($(if($Token){ "&token=$t" } else { "" }))
+
+
+  $t = [System.Web.HttpUtility]::UrlEncode($Token)
+  return "$EngineBase/ace/manifest.m3u8?id=$id" + ($(if($Token){ "&token=$t" } else { "" }))
+
+  $tokenPart = if ([string]::IsNullOrEmpty($Token)) { "" } else { "&token=" + [System.Uri]::EscapeDataString($Token) }
+  return "$EngineBase/ace/manifest.m3u8?id=$id$tokenPart"
+
+
 }
 
 # Recorre archivos por extensión
