@@ -6,7 +6,9 @@ const playlistsDir = path.join(projectRoot, "playlists");
 const docsDir = path.join(projectRoot, "docs");
 const webPublicDir = path.join(projectRoot, "packages", "web-client", "public");
 
-const STATIC_PLAYERS = [
+const defaultPlayerPresetPath = path.join(playlistsDir, "player-presets.json");
+
+const DEFAULT_STATIC_PLAYERS = [
   {
     id: "acestream",
     label: "Ace Stream (engine local)",
@@ -31,6 +33,126 @@ const STATIC_PLAYERS = [
     template: "kodi://play?item={{url}}"
   }
 ];
+
+function resolvePlayerPresetPath() {
+  const envPath = process.env.PLAYER_PRESETS && process.env.PLAYER_PRESETS.trim();
+  if (envPath) {
+    const resolvedEnvPath = path.resolve(projectRoot, envPath);
+    if (fs.existsSync(resolvedEnvPath)) {
+      return resolvedEnvPath;
+    }
+    console.warn(`PLAYER_PRESETS apunta a "${resolvedEnvPath}" pero el archivo no existe. Se usará el preset por defecto.`);
+  }
+  if (fs.existsSync(defaultPlayerPresetPath)) {
+    return defaultPlayerPresetPath;
+  }
+  return null;
+}
+
+function normalizeHttpCheck(entry) {
+  if (!entry) {
+    return null;
+  }
+  if (typeof entry === "string") {
+    return { url: entry };
+  }
+  if (typeof entry !== "object") {
+    return null;
+  }
+  if (!entry.url || typeof entry.url !== "string") {
+    return null;
+  }
+  const normalized = {
+    url: entry.url,
+    method: entry.method && typeof entry.method === "string" ? entry.method.toUpperCase() : undefined,
+    mode: entry.mode && typeof entry.mode === "string" ? entry.mode : undefined,
+    timeout: typeof entry.timeout === "number" && entry.timeout > 0 ? Math.round(entry.timeout) : undefined
+  };
+  if (Array.isArray(entry.expectStatus)) {
+    normalized.expectStatus = entry.expectStatus
+      .map((value) => Number.parseInt(value, 10))
+      .filter((value) => !Number.isNaN(value));
+  } else if (typeof entry.expectStatus === "number") {
+    normalized.expectStatus = entry.expectStatus;
+  }
+  return normalized;
+}
+
+function sanitizePreset(preset) {
+  if (!preset || typeof preset !== "object") {
+    return null;
+  }
+  const id = typeof preset.id === "string" ? preset.id.trim() : "";
+  const label = typeof preset.label === "string" ? preset.label.trim() : "";
+  if (!id || !label) {
+    return null;
+  }
+  const type = preset.type === "acestream" ? "acestream" : "template";
+  const result = { id, label, type };
+  if (type === "template" && typeof preset.template === "string" && preset.template.trim()) {
+    result.template = preset.template.trim();
+  }
+  if (type === "acestream") {
+    result.template = undefined;
+  }
+  if (preset.icon && typeof preset.icon === "string" && preset.icon.trim()) {
+    result.icon = preset.icon.trim();
+  }
+  if (preset.isDefault) {
+    result.isDefault = true;
+  }
+  if (preset.availability && typeof preset.availability === "object") {
+    const availability = {};
+    if (Array.isArray(preset.availability.platforms)) {
+      availability.platforms = preset.availability.platforms
+        .map((value) => (typeof value === "string" ? value.trim().toLowerCase() : ""))
+        .filter(Boolean);
+    }
+    if (Array.isArray(preset.availability.excludePlatforms)) {
+      availability.excludePlatforms = preset.availability.excludePlatforms
+        .map((value) => (typeof value === "string" ? value.trim().toLowerCase() : ""))
+        .filter(Boolean);
+    }
+    if (Array.isArray(preset.availability.hostnames)) {
+      availability.hostnames = preset.availability.hostnames
+        .map((value) => (typeof value === "string" ? value.trim().toLowerCase() : ""))
+        .filter(Boolean);
+    }
+    if (Array.isArray(preset.availability.http)) {
+      availability.http = preset.availability.http
+        .map((entry) => normalizeHttpCheck(entry))
+        .filter(Boolean);
+    }
+    if (Object.keys(availability).length > 0) {
+      result.availability = availability;
+    }
+  }
+  return result;
+}
+
+function loadStaticPlayers() {
+  const presetPath = resolvePlayerPresetPath();
+  if (!presetPath) {
+    return DEFAULT_STATIC_PLAYERS;
+  }
+  try {
+    const raw = fs.readFileSync(presetPath, "utf8");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      console.warn(`El archivo de presets ${presetPath} no contiene un array valido. Se usaran los reproductores por defecto.`);
+      return DEFAULT_STATIC_PLAYERS;
+    }
+    const sanitized = parsed.map((preset) => sanitizePreset(preset)).filter(Boolean);
+    if (!sanitized.length) {
+      console.warn(`El archivo de presets ${presetPath} no produjo reproductores validos. Se usaran los valores por defecto.`);
+      return DEFAULT_STATIC_PLAYERS;
+    }
+    return sanitized;
+  } catch (error) {
+    console.warn(`No se pudo leer ${presetPath}. Se usaran los reproductores por defecto.`, error);
+    return DEFAULT_STATIC_PLAYERS;
+  }
+}
 
 function resolveSourcePath(argv) {
   const cliArgs = argv.slice(2);
@@ -130,9 +252,9 @@ function parseExtInf(line) {
 
   return info;
 }
-function buildHtml(entries) {
+function buildHtml(entries, staticPlayers) {
   const playlistJson = JSON.stringify(entries);
-  const staticPlayersJson = JSON.stringify(STATIC_PLAYERS);
+  const staticPlayersJson = JSON.stringify(staticPlayers);
   const printedAt = new Date().toISOString();
 
   const cssLines = [
@@ -357,6 +479,13 @@ function buildHtml(entries) {
     "      text-decoration: none;",
     "      transition: transform 120ms ease;",
     "    }",
+    "    .player-picker__icon {",
+    "      width: 18px;",
+    "      height: 18px;",
+    "      border-radius: 0.35rem;",
+    "      object-fit: contain;",
+    "      flex-shrink: 0;",
+    "    }",
     "    .player-picker__link[data-kind=\"static\"] {",
     "      background: rgba(56, 189, 248, 0.12);",
     "      color: #38bdf8;",
@@ -416,6 +545,20 @@ function buildHtml(entries) {
     "  (function () {",
     `    const playlist = ${playlistJson};`,
     `    const staticPlayers = ${staticPlayersJson};`,
+    "    var previousWindowData = window.Window_DATA || {};",
+    "    var previousAvailableStatic = Array.isArray(previousWindowData.availableStaticPlayers) ? previousWindowData.availableStaticPlayers : [];",
+    "    window.Window_DATA = {",
+    "      playlist: playlist,",
+    "      staticPlayers: staticPlayers,",
+    "      availableStaticPlayers: previousAvailableStatic.slice(),",
+    "      logs: Array.isArray(previousWindowData.logs) ? previousWindowData.logs : []",
+    "    };",
+    "    if (previousWindowData.lastStatus) {",
+    "      window.Window_DATA.lastStatus = previousWindowData.lastStatus;",
+    "    }",
+    "    if (previousWindowData.lastError) {",
+    "      window.Window_DATA.lastError = previousWindowData.lastError;",
+    "    }",
     "    const settingsKey = \"yavale_acestream_settings\";",
     "    const CACHE_TTL = 15000;",
     "    const playlistContainer = document.getElementById(\"playlist\");",
@@ -429,13 +572,54 @@ function buildHtml(entries) {
     "    const state = {",
     "      settings: loadSettings(),",
     "      cache: new Map(),",
-    "      statusTimer: null",
+    "      statusTimer: null,",
+    "      availableStaticPlayers: previousAvailableStatic.slice(),",
+    "      staticPlayersReady: false,",
+    "      environment: null,",
+    "      lastRenderedList: null",
     "    };",
+    "    if (window.Window_DATA) {",
+    "      window.Window_DATA.state = state;",
+    "    }",
+    "    const environment = detectEnvironment();",
+    "    state.environment = environment;",
+    "    if (window.Window_DATA) {",
+    "      window.Window_DATA.environment = {",
+    "        userAgent: window.navigator.userAgent || \"\",",
+    "        platform: window.navigator.platform || \"\",",
+    "        tags: Array.from(environment.tags || []),",
+    "        hostname: window.location.hostname,",
+    "        protocol: window.location.protocol",
+    "      };",
+    "    }",
     "    state.settings.baseUrl = normalizeBaseUrl(state.settings.baseUrl);",
     "    saveSettings(state.settings);",
     "    writeSettingsToForm(state.settings);",
     "    populateFilterOptions();",
     "    initSettingsWarnings();",
+    "    evaluateStaticPlayers(staticPlayers, environment).then(function (available) {",
+    "      state.availableStaticPlayers = available;",
+    "      state.staticPlayersReady = true;",
+    "      if (window.Window_DATA) {",
+    "        window.Window_DATA.availableStaticPlayers = available.slice();",
+    "      }",
+    "      if (state.lastRenderedList) {",
+    "        render(state.lastRenderedList);",
+    "      }",
+    "    }).catch(function (error) {",
+    "      recordLog({ kind: \"static-players-error\", message: error && error.message ? error.message : String(error) });",
+    "      state.availableStaticPlayers = staticPlayers.slice();",
+    "      state.staticPlayersReady = true;",
+    "      if (window.Window_DATA) {",
+    "        window.Window_DATA.availableStaticPlayers = staticPlayers.slice();",
+    "        if (!window.Window_DATA.lastError) {",
+    "          window.Window_DATA.lastError = { kind: \"static-players-error\", message: error && error.message ? error.message : String(error) };",
+    "        }",
+    "      }",
+    "      if (state.lastRenderedList) {",
+    "        render(state.lastRenderedList);",
+    "      }",
+    "    });",
     "    render(playlist);",
     "    if (searchInput) {",
     "      searchInput.addEventListener(\"input\", applyFilters);",
@@ -565,6 +749,20 @@ function buildHtml(entries) {
     "      const statusType = type || \"info\";",
     "      statusNode.textContent = message || \"\";",
     "      statusNode.className = \"settings-status \" + statusType;",
+    "      if (statusType === \"error\") {",
+    "        recordLog({ kind: \"ui-error\", message: message || \"\" });",
+    "      }",
+    "      if (window.Window_DATA) {",
+    "        try {",
+    "          window.Window_DATA.lastStatus = {",
+    "            message: message || \"\",",
+    "            type: statusType,",
+    "            timestamp: Date.now()",
+    "          };",
+    "        } catch (error) {",
+    "          console.warn(\"No se pudo registrar el estado\", error);",
+    "        }",
+    "      }",
     "      if (state.statusTimer) {",
     "        window.clearTimeout(state.statusTimer);",
     "        state.statusTimer = null;",
@@ -576,6 +774,298 @@ function buildHtml(entries) {
     "          statusNode.className = \"settings-status\";",
     "        }, duration);",
     "      }",
+    "    }",
+    "    function recordLog(entry) {",
+    "      if (!window.Window_DATA || !Array.isArray(window.Window_DATA.logs)) {",
+    "        return;",
+    "      }",
+    "      try {",
+    "        const payload = Object.assign({ timestamp: Date.now() }, entry || {});",
+    "        window.Window_DATA.logs.push(payload);",
+    "        if (payload && typeof payload.kind === \"string\" && payload.kind.indexOf(\"error\") !== -1) {",
+    "          window.Window_DATA.lastError = payload;",
+    "        }",
+    "        if (window.Window_DATA.logs.length > 100) {",
+    "          window.Window_DATA.logs.shift();",
+    "        }",
+    "      } catch (error) {",
+    "        console.warn(\"No se pudo registrar el log\", error);",
+    "      }",
+    "    }",
+    "    function detectEnvironment() {",
+    "      var tags = new Set();",
+    "      var ua = window.navigator.userAgent || \"\";",
+    "      var platform = (window.navigator.platform || \"\").toLowerCase();",
+    "      var maxTouchPoints = typeof window.navigator.maxTouchPoints === \"number\" ? window.navigator.maxTouchPoints : 0;",
+    "      var userAgentData = window.navigator.userAgentData;",
+    "      var mobileHint = /Mobi|Mobile|iPhone|Android/.test(ua);",
+    "      var isAndroid = /Android/i.test(ua);",
+    "      var isIPad = /iPad/.test(ua) || (platform === \"macintel\" && maxTouchPoints > 1);",
+    "      var isIPhone = /iPhone|iPod/.test(ua);",
+    "      var isIOS = isIPad || isIPhone;",
+    "      var isWindows = /Windows NT|Win64|Win32/.test(ua) || platform.indexOf(\"win\") === 0;",
+    "      var isMac = !isIOS && (/Macintosh/.test(ua) || platform.indexOf(\"mac\") === 0);",
+    "      var isLinux = /Linux/.test(ua) || platform.indexOf(\"linux\") === 0;",
+    "      var isTablet = isIPad || /Tablet|Silk/.test(ua) || (isAndroid && !/Mobile/.test(ua));",
+    "      var isMobile = mobileHint && !isTablet && !isIPad;",
+    "      if (isMobile) {",
+    "        tags.add(\"mobile\");",
+    "      } else {",
+    "        tags.add(\"desktop\");",
+    "      }",
+    "      if (isTablet) {",
+    "        tags.add(\"tablet\");",
+    "      }",
+    "      if (isAndroid) {",
+    "        tags.add(\"android\");",
+    "      }",
+    "      if (isIOS) {",
+    "        tags.add(\"ios\");",
+    "      }",
+    "      if (isIPad) {",
+    "        tags.add(\"ipad\");",
+    "      }",
+    "      if (isIPhone) {",
+    "        tags.add(\"iphone\");",
+    "      }",
+    "      if (isWindows) {",
+    "        tags.add(\"windows\");",
+    "      }",
+    "      if (isMac) {",
+    "        tags.add(\"mac\");",
+    "      }",
+    "      if (isLinux) {",
+    "        tags.add(\"linux\");",
+    "      }",
+    "      if ((typeof window !== \"undefined\" && 'ontouchstart' in window) || maxTouchPoints > 0) {",
+    "        tags.add(\"touch\");",
+    "      }",
+    "      if (window.navigator.standalone) {",
+    "        tags.add(\"standalone\");",
+    "      }",
+    "      if (/SmartTV|Tizen|Web0S|webOS|NetCast|HbbTV|AFTB|AFTS/i.test(ua)) {",
+    "        tags.add(\"smart-tv\");",
+    "      }",
+    "      if (/Web0S|webOS/i.test(ua)) {",
+    "        tags.add(\"webos\");",
+    "      }",
+    "      if (/CrOS/i.test(ua)) {",
+    "        tags.add(\"chromeos\");",
+    "      }",
+    "      var isEdge = /Edg\//i.test(ua);",
+    "      var isOpera = /OPR\//i.test(ua);",
+    "      var isFirefox = /Firefox\//i.test(ua) && !/Seamonkey/i.test(ua);",
+    "      var isChrome = /Chrome|Chromium|CriOS/i.test(ua) && !isEdge && !isOpera;",
+    "      var isSafari = /Safari/i.test(ua) && !isChrome && !isEdge && !isOpera;",
+    "      if (isEdge) {",
+    "        tags.add(\"edge\");",
+    "      }",
+    "      if (isOpera) {",
+    "        tags.add(\"opera\");",
+    "      }",
+    "      if (isFirefox) {",
+    "        tags.add(\"firefox\");",
+    "      }",
+    "      if (isChrome) {",
+    "        tags.add(\"chrome\");",
+    "      }",
+    "      if (isSafari) {",
+    "        tags.add(\"safari\");",
+    "      }",
+    "      if (userAgentData && Array.isArray(userAgentData.brands)) {",
+    "        userAgentData.brands.forEach(function (brand) {",
+    "          if (brand && brand.brand) {",
+    "            tags.add(String(brand.brand || \"\").toLowerCase());",
+    "          }",
+    "        });",
+    "      }",
+    "      return {",
+    "        tags: tags,",
+    "        userAgent: ua,",
+    "        platform: platform,",
+    "        hostname: window.location.hostname ? window.location.hostname.toLowerCase() : \"\",",
+    "        protocol: window.location.protocol || \"\"",
+    "      };",
+    "    }",
+    "    function evaluateStaticPlayers(presets, environment) {",
+    "      var list = Array.isArray(presets) ? presets.slice() : [];",
+    "      if (!list.length) {",
+    "        return Promise.resolve([]);",
+    "      }",
+    "      var filtered = list.filter(function (preset) {",
+    "        return matchesPlatformAvailability(preset, environment) && matchesHostnameAvailability(preset, environment);",
+    "      });",
+    "      if (!filtered.length) {",
+    "        return Promise.resolve([]);",
+    "      }",
+    "      return Promise.all(filtered.map(function (preset) {",
+    "        return verifyHttpAvailability(preset).then(function (available) {",
+    "          return available ? preset : null;",
+    "        });",
+    "      })).then(function (results) {",
+    "        return results.filter(Boolean);",
+    "      });",
+    "    }",
+    "    function matchesPlatformAvailability(preset, environment) {",
+    "      if (!preset || !preset.availability) {",
+    "        return true;",
+    "      }",
+    "      var tags = environment && environment.tags ? environment.tags : new Set();",
+    "      var availability = preset.availability;",
+    "      if (Array.isArray(availability.platforms) && availability.platforms.length) {",
+    "        var allowed = availability.platforms.some(function (value) {",
+    "          if (!value) {",
+    "            return false;",
+    "          }",
+    "          return tags.has(String(value).toLowerCase());",
+    "        });",
+    "        if (!allowed) {",
+    "          return false;",
+    "        }",
+    "      }",
+    "      if (Array.isArray(availability.excludePlatforms) && availability.excludePlatforms.length) {",
+    "        var blocked = availability.excludePlatforms.some(function (value) {",
+    "          if (!value) {",
+    "            return false;",
+    "          }",
+    "          return tags.has(String(value).toLowerCase());",
+    "        });",
+    "        if (blocked) {",
+    "          return false;",
+    "        }",
+    "      }",
+    "      return true;",
+    "    }",
+    "    function matchesHostnameAvailability(preset, environment) {",
+    "      if (!preset || !preset.availability || !Array.isArray(preset.availability.hostnames) || !preset.availability.hostnames.length) {",
+    "        return true;",
+    "      }",
+    "      var host = environment && environment.hostname ? environment.hostname : (window.location.hostname || \"\").toLowerCase();",
+    "      return preset.availability.hostnames.some(function (value) {",
+    "        if (!value) {",
+    "          return false;",
+    "        }",
+    "        var candidate = String(value).toLowerCase();",
+    "        if (candidate.charAt(0) === '.') {",
+    "          var suffix = candidate.slice(1);",
+    "          return host === suffix || host.endsWith('.' + suffix);",
+    "        }",
+    "        return host === candidate;",
+    "      });",
+    "    }",
+    "    function verifyHttpAvailability(preset) {",
+    "      if (!preset || !preset.availability || !Array.isArray(preset.availability.http) || !preset.availability.http.length) {",
+    "        return Promise.resolve(true);",
+    "      }",
+    "      var checks = preset.availability.http;",
+    "      return new Promise(function (resolve) {",
+    "        var resolved = false;",
+    "        var pending = checks.length;",
+    "        if (!pending) {",
+    "          resolve(true);",
+    "          return;",
+    "        }",
+    "        function finish(result) {",
+    "          if (resolved) {",
+    "            return;",
+    "          }",
+    "          resolved = true;",
+    "          resolve(result);",
+    "        }",
+    "        checks.forEach(function (check) {",
+    "          performHttpCheck(preset, check).then(function (ok) {",
+    "            if (ok) {",
+    "              finish(true);",
+    "              return;",
+    "            }",
+    "            pending -= 1;",
+    "            if (pending === 0) {",
+    "              finish(false);",
+    "            }",
+    "          });",
+    "        });",
+    "      });",
+    "    }",
+    "    function performHttpCheck(preset, check) {",
+    "      return new Promise(function (resolve) {",
+    "        if (!check || !check.url) {",
+    "          resolve(false);",
+    "          return;",
+    "        }",
+    "        var controller = typeof AbortController === 'function' ? new AbortController() : null;",
+    "        var settled = false;",
+    "        var timeout = typeof check.timeout === 'number' && check.timeout > 0 ? check.timeout : 2000;",
+    "        var timer = null;",
+    "        function finish(result, error) {",
+    "          if (settled) {",
+    "            return;",
+    "          }",
+    "          settled = true;",
+    "          if (timer) {",
+    "            window.clearTimeout(timer);",
+    "          }",
+    "          if (!result && error && check.mode === 'no-cors') {",
+    "            resolve(true);",
+    "            return;",
+    "          }",
+    "          resolve(result);",
+    "        }",
+    "        if (typeof window.setTimeout === 'function') {",
+    "          timer = window.setTimeout(function () {",
+    "            if (controller && typeof controller.abort === 'function') {",
+    "              try {",
+    "                controller.abort();",
+    "              } catch (abortError) {",
+    "              }",
+    "            }",
+    "            recordLog({ kind: 'http-check-timeout', player: preset && preset.id, url: check.url });",
+    "            finish(false, new Error('timeout'));",
+    "          }, timeout);",
+    "        }",
+    "        var options = {",
+    "          method: check.method || 'GET',",
+    "          mode: check.mode || 'cors',",
+    "          credentials: 'omit',",
+    "          cache: 'no-store'",
+    "        };",
+    "        if (controller) {",
+    "          options.signal = controller.signal;",
+    "        }",
+    "        fetch(check.url, options).then(function (response) {",
+    "          if (response.type === 'opaque') {",
+    "            finish(true);",
+    "            return;",
+    "          }",
+    "          if (Array.isArray(check.expectStatus) && check.expectStatus.length) {",
+    "            finish(check.expectStatus.indexOf(response.status) !== -1);",
+    "            return;",
+    "          }",
+    "          if (typeof check.expectStatus === 'number') {",
+    "            finish(response.status === check.expectStatus);",
+    "            return;",
+    "          }",
+    "          finish(response.ok);",
+    "        }).catch(function (error) {",
+    "          if (check.mode === 'no-cors') {",
+    "            finish(true);",
+    "            return;",
+    "          }",
+    "          recordLog({ kind: 'http-check-error', player: preset && preset.id, url: check.url, message: error && error.message ? error.message : String(error) });",
+    "          finish(false, error);",
+    "        });",
+    "      });",
+    "    }",
+    "    function describeNetworkError(error) {",
+    "      if (!error) {",
+    "        return \"Error desconocido en la comunicación con AceStream.\";",
+    "      }",
+    "      if (error.name === \"TypeError\" && error.message === \"Failed to fetch\") {",
+    "        if (window.location.protocol === \"https:\" && state.settings.baseUrl.indexOf(\"http://\") === 0) {",
+    "          return \"El navegador bloqueó la petición HTTP hacia AceStream por contenido mixto.\";",
+    "        }",
+    "        return \"No se pudo contactar con AceStream (Failed to fetch).\";",
+    "      }",
+    "      return error.message || String(error);",
     "    }",
     "    function initSettingsWarnings() {",
     "      if (window.location.protocol === \"https:\" && state.settings.baseUrl.indexOf(\"http://\") === 0) {",
@@ -634,6 +1124,11 @@ function buildHtml(entries) {
     "          state.settings = Object.assign({}, state.settings, { accessToken: parsed.access_token || state.settings.accessToken });",
     "          saveSettings(state.settings);",
     "          return parsed;",
+    "        })",
+    "        .catch(function (error) {",
+    "          const message = describeNetworkError(error);",
+    "          recordLog({ kind: \"webui-error\", message: message });",
+    "          throw new Error(message);",
     "        });",
     "    }",
     "    function apiRequest(params) {",
@@ -661,6 +1156,11 @@ function buildHtml(entries) {
     "            throw new Error(typeof data.error === \"string\" ? data.error : JSON.stringify(data.error));",
     "          }",
     "          return data && data.result ? data.result : {};",
+    "        })",
+    "        .catch(function (error) {",
+    "          const message = describeNetworkError(error);",
+    "          recordLog({ kind: \"api-error\", method: params.method || \"\", message: message });",
+    "          throw new Error(message);",
     "        });",
     "    }",
     "    function loadAvailablePlayers(infohash, options) {",
@@ -676,18 +1176,37 @@ function buildHtml(entries) {
     "      return apiRequest({ method: \"get_available_players\", infohash: infohash }).then(function (result) {",
     "        const players = Array.isArray(result.players) ? result.players : [];",
     "        state.cache.set(infohash, { players: players, timestamp: now });",
+    "        recordLog({ kind: \"players\", infohash: infohash, count: players.length });",
     "        return players;",
+    "      }).catch(function (error) {",
+    "        recordLog({ kind: \"players-error\", infohash: infohash, message: error && error.message ? error.message : String(error) });",
+    "        throw error;",
     "      });",
     "    }",
     "    function renderStaticPlayers(listEl, item) {",
-    "      if (!staticPlayers.length) {",
+    "      if (!staticPlayers.length && !state.availableStaticPlayers.length) {",
     "        return;",
     "      }",
     "      const heading = document.createElement(\"li\");",
     "      heading.className = \"player-picker__heading\";",
     "      heading.textContent = \"Aplicaciones locales\";",
     "      listEl.appendChild(heading);",
-    "      staticPlayers.forEach(function (player) {",
+    "      if (!state.staticPlayersReady) {",
+    "        const hint = document.createElement(\"li\");",
+    "        hint.className = \"player-picker__hint\";",
+    "        hint.textContent = \"Detectando aplicaciones locales...\";",
+    "        listEl.appendChild(hint);",
+    "        return;",
+    "      }",
+    "      const players = Array.isArray(state.availableStaticPlayers) ? state.availableStaticPlayers : [];",
+    "      if (!players.length) {",
+    "        const hint = document.createElement(\"li\");",
+    "        hint.className = \"player-picker__hint\";",
+    "        hint.textContent = \"No hay aplicaciones locales disponibles para este dispositivo.\";",
+    "        listEl.appendChild(hint);",
+    "        return;",
+    "      }",
+    "      players.forEach(function (player) {",
     "        const href = buildStaticHref(player, item.url);",
     "        if (!href) {",
     "          return;",
@@ -696,8 +1215,18 @@ function buildHtml(entries) {
     "        const link = document.createElement(\"a\");",
     "        link.className = \"player-picker__link\";",
     "        link.dataset.kind = \"static\";",
-    "        link.textContent = player.label;",
     "        link.href = href;",
+    "        if (player.icon) {",
+    "          const icon = document.createElement(\"img\");",
+    "          icon.src = player.icon;",
+    "          icon.alt = \"\";",
+    "          icon.loading = \"lazy\";",
+    "          icon.className = \"player-picker__icon\";",
+    "          link.appendChild(icon);",
+    "        }",
+    "        const label = document.createElement(\"span\");",
+    "        label.textContent = player.label;",
+    "        link.appendChild(label);",
     "        if (player.type === \"acestream\") {",
     "          link.rel = \"noreferrer\";",
     "        } else {",
@@ -758,8 +1287,10 @@ function buildHtml(entries) {
     "          listEl.appendChild(li);",
     "        });",
     "      }).catch(function (error) {",
+    "        const message = error && error.message ? error.message : \"No se pudieron listar los reproductores.\";",
     "        status.className = \"player-picker__hint player-picker__error\";",
-    "        status.textContent = error && error.message ? error.message : \"No se pudieron listar los reproductores.\";",
+    "        status.textContent = message;",
+    "        setStatus(message, \"error\");",
     "      });",
     "    }",
     "    function openDynamicPlayer(player, infohash, title) {",
@@ -802,6 +1333,9 @@ function buildHtml(entries) {
     "      });",
     "    }",
     "    function render(list) {",
+    "      if (state) {",
+    "        state.lastRenderedList = list;",
+    "      }",
     "      if (!playlistContainer) {",
     "        return;",
     "      }",
@@ -994,7 +1528,8 @@ function main() {
 
   const playlistContent = fs.readFileSync(targetPlaylistPath, "utf8");
   const entries = parseM3U8(playlistContent);
-  const html = buildHtml(entries);
+  const staticPlayers = loadStaticPlayers();
+  const html = buildHtml(entries, staticPlayers);
 
   fs.writeFileSync(path.join(webPublicDir, "index.html"), html, "utf8");
   fs.writeFileSync(path.join(webPublicDir, "playlist.json"), JSON.stringify(entries, null, 2), "utf8");
