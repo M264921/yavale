@@ -226,13 +226,6 @@
       text-decoration: none;
       transition: transform 120ms ease;
     }
-    .player-picker__icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 0.35rem;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
     .player-picker__link[data-kind="static"] {
       background: rgba(56, 189, 248, 0.12);
       color: #38bdf8;
@@ -291,7 +284,7 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: 2025-10-03T18:04:39.095Z</p>
+    <p>Actualizada: 2025-10-03T17:33:59.582Z</p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group">
@@ -328,13 +321,11 @@
 <script>
   (function () {
     const playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
-    const staticPlayers = [{"id":"living-room","label":"Sala de estar (Chromecast)","type":"template","template":"acecast://device/living-room/play?infohash={{infohash}}&title={{title_encoded}}","availability":{"platforms":["desktop","android"],"http":[{"url":"http://192.168.1.50:8008/setup/eureka_info","method":"GET","mode":"no-cors","timeout":2000}]}},{"id":"lg-oled65c4","label":"[LG] webOS TV OLED65C4","type":"template","template":"acecast://device/lg-oled65c4/play?infohash={{infohash}}&title={{title_encoded}}","availability":{"platforms":["desktop","android","ios"],"http":[{"url":"http://lgoled65c4.lan:3000/api/ping"},{"url":"http://192.168.1.80:3000/api/ping","method":"GET","mode":"no-cors","timeout":1500}]}},{"id":"aftss","label":"AFTSS (AceCast)","type":"template","template":"acecast://device/aftss/play?infohash={{infohash}}&title={{title_encoded}}","availability":{"platforms":["android","desktop"],"http":[{"url":"http://192.168.1.90:6878/server/check"}]}},{"id":"ace-player-hd","label":"Ace Player HD","type":"template","template":"acestream://{{infohash}}","isDefault":true},{"id":"windows-media-player","label":"Reproductor de Windows Media","type":"template","template":"wmplayer.exe?{{url_raw}}"}];
+    const staticPlayers = [{"id":"acestream","label":"Ace Stream (engine local)","type":"acestream"},{"id":"vlc","label":"VLC (iOS/macOS)","type":"template","template":"vlc-x-callback://x-callback-url/stream?url={{url}}"},{"id":"infuse","label":"Infuse","type":"template","template":"infuse://x-callback-url/play?url={{url}}"},{"id":"kodi","label":"Kodi","type":"template","template":"kodi://play?item={{url}}"}];
     var previousWindowData = window.Window_DATA || {};
-    var previousAvailableStatic = Array.isArray(previousWindowData.availableStaticPlayers) ? previousWindowData.availableStaticPlayers : [];
     window.Window_DATA = {
       playlist: playlist,
       staticPlayers: staticPlayers,
-      availableStaticPlayers: previousAvailableStatic.slice(),
       logs: Array.isArray(previousWindowData.logs) ? previousWindowData.logs : []
     };
     if (previousWindowData.lastStatus) {
@@ -356,54 +347,16 @@
     const state = {
       settings: loadSettings(),
       cache: new Map(),
-      statusTimer: null,
-      availableStaticPlayers: previousAvailableStatic.slice(),
-      staticPlayersReady: false,
-      environment: null,
-      lastRenderedList: null
+      statusTimer: null
     };
     if (window.Window_DATA) {
       window.Window_DATA.state = state;
-    }
-    const environment = detectEnvironment();
-    state.environment = environment;
-    if (window.Window_DATA) {
-      window.Window_DATA.environment = {
-        userAgent: window.navigator.userAgent || "",
-        platform: window.navigator.platform || "",
-        tags: Array.from(environment.tags || []),
-        hostname: window.location.hostname,
-        protocol: window.location.protocol
-      };
     }
     state.settings.baseUrl = normalizeBaseUrl(state.settings.baseUrl);
     saveSettings(state.settings);
     writeSettingsToForm(state.settings);
     populateFilterOptions();
     initSettingsWarnings();
-    evaluateStaticPlayers(staticPlayers, environment).then(function (available) {
-      state.availableStaticPlayers = available;
-      state.staticPlayersReady = true;
-      if (window.Window_DATA) {
-        window.Window_DATA.availableStaticPlayers = available.slice();
-      }
-      if (state.lastRenderedList) {
-        render(state.lastRenderedList);
-      }
-    }).catch(function (error) {
-      recordLog({ kind: "static-players-error", message: error && error.message ? error.message : String(error) });
-      state.availableStaticPlayers = staticPlayers.slice();
-      state.staticPlayersReady = true;
-      if (window.Window_DATA) {
-        window.Window_DATA.availableStaticPlayers = staticPlayers.slice();
-        if (!window.Window_DATA.lastError) {
-          window.Window_DATA.lastError = { kind: "static-players-error", message: error && error.message ? error.message : String(error) };
-        }
-      }
-      if (state.lastRenderedList) {
-        render(state.lastRenderedList);
-      }
-    });
     render(playlist);
     if (searchInput) {
       searchInput.addEventListener("input", applyFilters);
@@ -576,269 +529,6 @@
         console.warn("No se pudo registrar el log", error);
       }
     }
-    function detectEnvironment() {
-      var tags = new Set();
-      var ua = window.navigator.userAgent || "";
-      var platform = (window.navigator.platform || "").toLowerCase();
-      var maxTouchPoints = typeof window.navigator.maxTouchPoints === "number" ? window.navigator.maxTouchPoints : 0;
-      var userAgentData = window.navigator.userAgentData;
-      var mobileHint = /Mobi|Mobile|iPhone|Android/.test(ua);
-      var isAndroid = /Android/i.test(ua);
-      var isIPad = /iPad/.test(ua) || (platform === "macintel" && maxTouchPoints > 1);
-      var isIPhone = /iPhone|iPod/.test(ua);
-      var isIOS = isIPad || isIPhone;
-      var isWindows = /Windows NT|Win64|Win32/.test(ua) || platform.indexOf("win") === 0;
-      var isMac = !isIOS && (/Macintosh/.test(ua) || platform.indexOf("mac") === 0);
-      var isLinux = /Linux/.test(ua) || platform.indexOf("linux") === 0;
-      var isTablet = isIPad || /Tablet|Silk/.test(ua) || (isAndroid && !/Mobile/.test(ua));
-      var isMobile = mobileHint && !isTablet && !isIPad;
-      if (isMobile) {
-        tags.add("mobile");
-      } else {
-        tags.add("desktop");
-      }
-      if (isTablet) {
-        tags.add("tablet");
-      }
-      if (isAndroid) {
-        tags.add("android");
-      }
-      if (isIOS) {
-        tags.add("ios");
-      }
-      if (isIPad) {
-        tags.add("ipad");
-      }
-      if (isIPhone) {
-        tags.add("iphone");
-      }
-      if (isWindows) {
-        tags.add("windows");
-      }
-      if (isMac) {
-        tags.add("mac");
-      }
-      if (isLinux) {
-        tags.add("linux");
-      }
-      if ((typeof window !== "undefined" && 'ontouchstart' in window) || maxTouchPoints > 0) {
-        tags.add("touch");
-      }
-      if (window.navigator.standalone) {
-        tags.add("standalone");
-      }
-      if (/SmartTV|Tizen|Web0S|webOS|NetCast|HbbTV|AFTB|AFTS/i.test(ua)) {
-        tags.add("smart-tv");
-      }
-      if (/Web0S|webOS/i.test(ua)) {
-        tags.add("webos");
-      }
-      if (/CrOS/i.test(ua)) {
-        tags.add("chromeos");
-      }
-      var isEdge = /Edg//i.test(ua);
-      var isOpera = /OPR//i.test(ua);
-      var isFirefox = /Firefox//i.test(ua) && !/Seamonkey/i.test(ua);
-      var isChrome = /Chrome|Chromium|CriOS/i.test(ua) && !isEdge && !isOpera;
-      var isSafari = /Safari/i.test(ua) && !isChrome && !isEdge && !isOpera;
-      if (isEdge) {
-        tags.add("edge");
-      }
-      if (isOpera) {
-        tags.add("opera");
-      }
-      if (isFirefox) {
-        tags.add("firefox");
-      }
-      if (isChrome) {
-        tags.add("chrome");
-      }
-      if (isSafari) {
-        tags.add("safari");
-      }
-      if (userAgentData && Array.isArray(userAgentData.brands)) {
-        userAgentData.brands.forEach(function (brand) {
-          if (brand && brand.brand) {
-            tags.add(String(brand.brand || "").toLowerCase());
-          }
-        });
-      }
-      return {
-        tags: tags,
-        userAgent: ua,
-        platform: platform,
-        hostname: window.location.hostname ? window.location.hostname.toLowerCase() : "",
-        protocol: window.location.protocol || ""
-      };
-    }
-    function evaluateStaticPlayers(presets, environment) {
-      var list = Array.isArray(presets) ? presets.slice() : [];
-      if (!list.length) {
-        return Promise.resolve([]);
-      }
-      var filtered = list.filter(function (preset) {
-        return matchesPlatformAvailability(preset, environment) && matchesHostnameAvailability(preset, environment);
-      });
-      if (!filtered.length) {
-        return Promise.resolve([]);
-      }
-      return Promise.all(filtered.map(function (preset) {
-        return verifyHttpAvailability(preset).then(function (available) {
-          return available ? preset : null;
-        });
-      })).then(function (results) {
-        return results.filter(Boolean);
-      });
-    }
-    function matchesPlatformAvailability(preset, environment) {
-      if (!preset || !preset.availability) {
-        return true;
-      }
-      var tags = environment && environment.tags ? environment.tags : new Set();
-      var availability = preset.availability;
-      if (Array.isArray(availability.platforms) && availability.platforms.length) {
-        var allowed = availability.platforms.some(function (value) {
-          if (!value) {
-            return false;
-          }
-          return tags.has(String(value).toLowerCase());
-        });
-        if (!allowed) {
-          return false;
-        }
-      }
-      if (Array.isArray(availability.excludePlatforms) && availability.excludePlatforms.length) {
-        var blocked = availability.excludePlatforms.some(function (value) {
-          if (!value) {
-            return false;
-          }
-          return tags.has(String(value).toLowerCase());
-        });
-        if (blocked) {
-          return false;
-        }
-      }
-      return true;
-    }
-    function matchesHostnameAvailability(preset, environment) {
-      if (!preset || !preset.availability || !Array.isArray(preset.availability.hostnames) || !preset.availability.hostnames.length) {
-        return true;
-      }
-      var host = environment && environment.hostname ? environment.hostname : (window.location.hostname || "").toLowerCase();
-      return preset.availability.hostnames.some(function (value) {
-        if (!value) {
-          return false;
-        }
-        var candidate = String(value).toLowerCase();
-        if (candidate.charAt(0) === '.') {
-          var suffix = candidate.slice(1);
-          return host === suffix || host.endsWith('.' + suffix);
-        }
-        return host === candidate;
-      });
-    }
-    function verifyHttpAvailability(preset) {
-      if (!preset || !preset.availability || !Array.isArray(preset.availability.http) || !preset.availability.http.length) {
-        return Promise.resolve(true);
-      }
-      var checks = preset.availability.http;
-      return new Promise(function (resolve) {
-        var resolved = false;
-        var pending = checks.length;
-        if (!pending) {
-          resolve(true);
-          return;
-        }
-        function finish(result) {
-          if (resolved) {
-            return;
-          }
-          resolved = true;
-          resolve(result);
-        }
-        checks.forEach(function (check) {
-          performHttpCheck(preset, check).then(function (ok) {
-            if (ok) {
-              finish(true);
-              return;
-            }
-            pending -= 1;
-            if (pending === 0) {
-              finish(false);
-            }
-          });
-        });
-      });
-    }
-    function performHttpCheck(preset, check) {
-      return new Promise(function (resolve) {
-        if (!check || !check.url) {
-          resolve(false);
-          return;
-        }
-        var controller = typeof AbortController === 'function' ? new AbortController() : null;
-        var settled = false;
-        var timeout = typeof check.timeout === 'number' && check.timeout > 0 ? check.timeout : 2000;
-        var timer = null;
-        function finish(result, error) {
-          if (settled) {
-            return;
-          }
-          settled = true;
-          if (timer) {
-            window.clearTimeout(timer);
-          }
-          if (!result && error && check.mode === 'no-cors') {
-            resolve(true);
-            return;
-          }
-          resolve(result);
-        }
-        if (typeof window.setTimeout === 'function') {
-          timer = window.setTimeout(function () {
-            if (controller && typeof controller.abort === 'function') {
-              try {
-                controller.abort();
-              } catch (abortError) {
-              }
-            }
-            recordLog({ kind: 'http-check-timeout', player: preset && preset.id, url: check.url });
-            finish(false, new Error('timeout'));
-          }, timeout);
-        }
-        var options = {
-          method: check.method || 'GET',
-          mode: check.mode || 'cors',
-          credentials: 'omit',
-          cache: 'no-store'
-        };
-        if (controller) {
-          options.signal = controller.signal;
-        }
-        fetch(check.url, options).then(function (response) {
-          if (response.type === 'opaque') {
-            finish(true);
-            return;
-          }
-          if (Array.isArray(check.expectStatus) && check.expectStatus.length) {
-            finish(check.expectStatus.indexOf(response.status) !== -1);
-            return;
-          }
-          if (typeof check.expectStatus === 'number') {
-            finish(response.status === check.expectStatus);
-            return;
-          }
-          finish(response.ok);
-        }).catch(function (error) {
-          if (check.mode === 'no-cors') {
-            finish(true);
-            return;
-          }
-          recordLog({ kind: 'http-check-error', player: preset && preset.id, url: check.url, message: error && error.message ? error.message : String(error) });
-          finish(false, error);
-        });
-      });
-    }
     function describeNetworkError(error) {
       if (!error) {
         return "Error desconocido en la comunicación con AceStream.";
@@ -968,29 +658,14 @@
       });
     }
     function renderStaticPlayers(listEl, item) {
-      if (!staticPlayers.length && !state.availableStaticPlayers.length) {
+      if (!staticPlayers.length) {
         return;
       }
       const heading = document.createElement("li");
       heading.className = "player-picker__heading";
       heading.textContent = "Aplicaciones locales";
       listEl.appendChild(heading);
-      if (!state.staticPlayersReady) {
-        const hint = document.createElement("li");
-        hint.className = "player-picker__hint";
-        hint.textContent = "Detectando aplicaciones locales...";
-        listEl.appendChild(hint);
-        return;
-      }
-      const players = Array.isArray(state.availableStaticPlayers) ? state.availableStaticPlayers : [];
-      if (!players.length) {
-        const hint = document.createElement("li");
-        hint.className = "player-picker__hint";
-        hint.textContent = "No hay aplicaciones locales disponibles para este dispositivo.";
-        listEl.appendChild(hint);
-        return;
-      }
-      players.forEach(function (player) {
+      staticPlayers.forEach(function (player) {
         const href = buildStaticHref(player, item.url);
         if (!href) {
           return;
@@ -999,18 +674,8 @@
         const link = document.createElement("a");
         link.className = "player-picker__link";
         link.dataset.kind = "static";
+        link.textContent = player.label;
         link.href = href;
-        if (player.icon) {
-          const icon = document.createElement("img");
-          icon.src = player.icon;
-          icon.alt = "";
-          icon.loading = "lazy";
-          icon.className = "player-picker__icon";
-          link.appendChild(icon);
-        }
-        const label = document.createElement("span");
-        label.textContent = player.label;
-        link.appendChild(label);
         if (player.type === "acestream") {
           link.rel = "noreferrer";
         } else {
@@ -1117,9 +782,6 @@
       });
     }
     function render(list) {
-      if (state) {
-        state.lastRenderedList = list;
-      }
       if (!playlistContainer) {
         return;
       }
