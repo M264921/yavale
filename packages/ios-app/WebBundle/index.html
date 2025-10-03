@@ -34,99 +34,6 @@
       gap: 0.75rem;
       align-items: center;
     }
-    section.acestream-tool {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      padding: 1rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      background: rgba(15, 23, 42, 0.55);
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
-    }
-    #engineForm {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin: 0.25rem 0 0.5rem;
-    }
-    #engineForm input {
-      padding: 0.55rem 0.75rem;
-      border-radius: 0.75rem;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(15, 23, 42, 0.6);
-      color: inherit;
-      min-width: 240px;
-      flex: 1 1 220px;
-    }
-    #engineForm button {
-      padding: 0.55rem 0.9rem;
-      border-radius: 0.75rem;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      background: rgba(56, 189, 248, 0.2);
-      color: #38bdf8;
-    }
-    #engineForm button:hover {
-      background: rgba(56, 189, 248, 0.35);
-    }
-    #acestream-list {
-      min-height: 3rem;
-      font-size: 0.95rem;
-      color: #cbd5f5;
-    }
-    .acestream-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-    .acestream-item {
-      border-radius: 0.85rem;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      padding: 0.85rem;
-      background: rgba(15, 23, 42, 0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 0.55rem;
-    }
-    .link-name {
-      font-weight: 600;
-      font-size: 1.05rem;
-    }
-    .link-url a {
-      color: #38bdf8;
-      word-break: break-all;
-    }
-    .link-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .link-actions .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.45rem 0.85rem;
-      border-radius: 0.75rem;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      background: rgba(148, 163, 184, 0.18);
-      color: inherit;
-    }
-    .link-actions .btn.alt-ace {
-      background: rgba(56, 189, 248, 0.22);
-      color: #38bdf8;
-    }
-    .link-actions .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.25);
-    }
     input[type="search"],
     select {
       padding: 0.65rem 0.9rem;
@@ -348,25 +255,6 @@
         background: #f8fafc;
         color: #0f172a;
       }
-      section.acestream-tool {
-        background: rgba(255, 255, 255, 0.95);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        box-shadow: 0 12px 24px rgba(100, 116, 139, 0.12);
-      }
-      #engineForm input {
-        background: rgba(248, 250, 252, 0.9);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-      }
-      .link-url a {
-        color: #2563eb;
-      }
-      .link-actions .btn {
-        background: rgba(148, 163, 184, 0.25);
-      }
-      .link-actions .btn.alt-ace {
-        background: rgba(37, 99, 235, 0.15);
-        color: #2563eb;
-      }
       .card {
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid rgba(148, 163, 184, 0.45);
@@ -396,7 +284,7 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: 2025-10-01T23:50:18.532Z</p>
+    <p>Actualizada: 2025-10-03T17:33:59.582Z</p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group">
@@ -428,23 +316,24 @@
       <p class="settings-status" id="acestream-status" role="status"></p>
     </details>
   </header>
-  <section class="acestream-tool" aria-labelledby="acestream-tool-heading">
-    <h2 id="acestream-tool-heading">AceStream Playlist</h2>
-    <p>Guarda la URL base de tu motor y el token (opcional) para generar accesos directos a cada canal.</p>
-    <form id="engineForm">
-      <input type="text" id="engineUrl" placeholder="http://127.0.0.1:6878" aria-label="URL del engine" />
-      <input type="text" id="engineTok" placeholder="Access token (opcional)" aria-label="Token de acceso" />
-      <button type="submit">Guardar</button>
-      <button type="button" id="engineTest">Probar engine</button>
-    </form>
-    <div id="acestream-list">Cargando…</div>
-  </section>
   <main id="playlist" role="list"></main>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
 <script>
   (function () {
     const playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
     const staticPlayers = [{"id":"acestream","label":"Ace Stream (engine local)","type":"acestream"},{"id":"vlc","label":"VLC (iOS/macOS)","type":"template","template":"vlc-x-callback://x-callback-url/stream?url={{url}}"},{"id":"infuse","label":"Infuse","type":"template","template":"infuse://x-callback-url/play?url={{url}}"},{"id":"kodi","label":"Kodi","type":"template","template":"kodi://play?item={{url}}"}];
+    var previousWindowData = window.Window_DATA || {};
+    window.Window_DATA = {
+      playlist: playlist,
+      staticPlayers: staticPlayers,
+      logs: Array.isArray(previousWindowData.logs) ? previousWindowData.logs : []
+    };
+    if (previousWindowData.lastStatus) {
+      window.Window_DATA.lastStatus = previousWindowData.lastStatus;
+    }
+    if (previousWindowData.lastError) {
+      window.Window_DATA.lastError = previousWindowData.lastError;
+    }
     const settingsKey = "yavale_acestream_settings";
     const CACHE_TTL = 15000;
     const playlistContainer = document.getElementById("playlist");
@@ -460,6 +349,9 @@
       cache: new Map(),
       statusTimer: null
     };
+    if (window.Window_DATA) {
+      window.Window_DATA.state = state;
+    }
     state.settings.baseUrl = normalizeBaseUrl(state.settings.baseUrl);
     saveSettings(state.settings);
     writeSettingsToForm(state.settings);
@@ -594,6 +486,20 @@
       const statusType = type || "info";
       statusNode.textContent = message || "";
       statusNode.className = "settings-status " + statusType;
+      if (statusType === "error") {
+        recordLog({ kind: "ui-error", message: message || "" });
+      }
+      if (window.Window_DATA) {
+        try {
+          window.Window_DATA.lastStatus = {
+            message: message || "",
+            type: statusType,
+            timestamp: Date.now()
+          };
+        } catch (error) {
+          console.warn("No se pudo registrar el estado", error);
+        }
+      }
       if (state.statusTimer) {
         window.clearTimeout(state.statusTimer);
         state.statusTimer = null;
@@ -605,6 +511,35 @@
           statusNode.className = "settings-status";
         }, duration);
       }
+    }
+    function recordLog(entry) {
+      if (!window.Window_DATA || !Array.isArray(window.Window_DATA.logs)) {
+        return;
+      }
+      try {
+        const payload = Object.assign({ timestamp: Date.now() }, entry || {});
+        window.Window_DATA.logs.push(payload);
+        if (payload && typeof payload.kind === "string" && payload.kind.indexOf("error") !== -1) {
+          window.Window_DATA.lastError = payload;
+        }
+        if (window.Window_DATA.logs.length > 100) {
+          window.Window_DATA.logs.shift();
+        }
+      } catch (error) {
+        console.warn("No se pudo registrar el log", error);
+      }
+    }
+    function describeNetworkError(error) {
+      if (!error) {
+        return "Error desconocido en la comunicación con AceStream.";
+      }
+      if (error.name === "TypeError" && error.message === "Failed to fetch") {
+        if (window.location.protocol === "https:" && state.settings.baseUrl.indexOf("http://") === 0) {
+          return "El navegador bloqueó la petición HTTP hacia AceStream por contenido mixto.";
+        }
+        return "No se pudo contactar con AceStream (Failed to fetch).";
+      }
+      return error.message || String(error);
     }
     function initSettingsWarnings() {
       if (window.location.protocol === "https:" && state.settings.baseUrl.indexOf("http://") === 0) {
@@ -663,6 +598,11 @@
           state.settings = Object.assign({}, state.settings, { accessToken: parsed.access_token || state.settings.accessToken });
           saveSettings(state.settings);
           return parsed;
+        })
+        .catch(function (error) {
+          const message = describeNetworkError(error);
+          recordLog({ kind: "webui-error", message: message });
+          throw new Error(message);
         });
     }
     function apiRequest(params) {
@@ -690,6 +630,11 @@
             throw new Error(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
           }
           return data && data.result ? data.result : {};
+        })
+        .catch(function (error) {
+          const message = describeNetworkError(error);
+          recordLog({ kind: "api-error", method: params.method || "", message: message });
+          throw new Error(message);
         });
     }
     function loadAvailablePlayers(infohash, options) {
@@ -705,7 +650,11 @@
       return apiRequest({ method: "get_available_players", infohash: infohash }).then(function (result) {
         const players = Array.isArray(result.players) ? result.players : [];
         state.cache.set(infohash, { players: players, timestamp: now });
+        recordLog({ kind: "players", infohash: infohash, count: players.length });
         return players;
+      }).catch(function (error) {
+        recordLog({ kind: "players-error", infohash: infohash, message: error && error.message ? error.message : String(error) });
+        throw error;
       });
     }
     function renderStaticPlayers(listEl, item) {
@@ -787,8 +736,10 @@
           listEl.appendChild(li);
         });
       }).catch(function (error) {
+        const message = error && error.message ? error.message : "No se pudieron listar los reproductores.";
         status.className = "player-picker__hint player-picker__error";
-        status.textContent = error && error.message ? error.message : "No se pudieron listar los reproductores.";
+        status.textContent = message;
+        setStatus(message, "error");
       });
     }
     function openDynamicPlayer(player, infohash, title) {
@@ -950,45 +901,6 @@
         return matchesTerm && matchesGroup;
       });
       render(filtered);
-    }
-  })();
-</script>
-<script src="./assets/js/acestream.js"></script>
-<script>
-  (function () {
-    var form = document.getElementById('engineForm');
-    if (!form) {
-      return;
-    }
-    var urlInput = document.getElementById('engineUrl');
-    var tokenInput = document.getElementById('engineTok');
-    var storedUrl = localStorage.getItem('engineUrl');
-    var storedToken = localStorage.getItem('accessToken');
-    if (storedUrl && urlInput) {
-      urlInput.value = storedUrl;
-    }
-    if (storedToken && tokenInput) {
-      tokenInput.value = storedToken;
-    }
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      var urlValue = urlInput ? urlInput.value.trim().replace(/\/+$/, '') : '';
-      var tokenValue = tokenInput ? tokenInput.value.trim() : '';
-      if (urlValue) {
-        localStorage.setItem('engineUrl', urlValue);
-      }
-      localStorage.setItem('accessToken', tokenValue);
-      window.location.reload();
-    });
-    var testButton = document.getElementById('engineTest');
-    if (testButton) {
-      testButton.addEventListener('click', function () {
-        if (typeof window.testAceEngine === 'function') {
-          window.testAceEngine();
-        } else {
-          window.alert('El script de AceStream no está disponible.');
-        }
-      });
     }
   })();
 </script>
