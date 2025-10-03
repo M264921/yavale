@@ -2,7 +2,7 @@
 
 Monorepo personal para centralizar todo el ecosistema Montana/YaVale:
 
-- **`packages/web-client`** - cliente web estatico (usable como app web o base para Safari/iOS).
+- **`packages/web-client`** - cliente web estatico (fuente canonica usada por Pages y la app iOS).
 - **`packages/ios-app`** - proyecto Xcode (WebView) para empaquetar el cliente en iPhone/iPad.
 - **`packages/stremio-addon`** - addon Stremio con catalogo AceStream que apunta a tu servidor remoto.
 - **`packages/vpn`** - plantillas y guias para WireGuard (configura tus claves antes de usarlas).
@@ -39,14 +39,17 @@ abran directamente la app nativa en iPhone/iPad.
 En la raiz del repo:
 
 ```bash
-# Servidor estatico del cliente web (sirve packages/web-client)
+# Servidor estatico del cliente web (sirve packages/web-client/public)
 npm run dev:web
 
 # Levanta el addon de Stremio en http://localhost:7000
 npm run dev:addon
 
-# Genera/actualiza GitHub Pages desde una playlist M3U8
-npm run generate:playlist -- "C:\\Users\\anton\\Documents\\playlist.m3u8"
+# Genera HTML + playlist.json desde una M3U8 y sincroniza todo
+npm run generate:playlist -- "C\\Users\\anton\\Documents\\playlist.m3u8"
+
+# Solo sincroniza (docs/ + app iOS) cuando edites recursos a mano
+npm run sync:webapp
 ```
 
 > El flag `--` permite pasar la ruta como primer argumento. Si omites la ruta, usara `playlists/playlist.m3u8`.
@@ -85,7 +88,8 @@ Variables de entorno soportadas en el addon:
 1. Exporta o actualiza tu lista en `C:\Users\anton\Documents\playlist.m3u8` (o la ruta que prefieras).
 2. Ejecuta `npm run generate:playlist -- "ruta/a/tu/playlist.m3u8"`.
    - El script copia el fichero a `playlists/playlist.m3u8`.
-   - Renderiza `docs/index.html` + `docs/playlist.json` con un grid filtrable de canales.
+   - Genera `packages/web-client/public/index.html` + `packages/web-client/public/playlist.json`.
+   - Sincroniza `docs/` y `packages/ios-app/WebBundle/` con esos archivos.
 3. Haz commit y push. En GitHub, configura **Settings -> Pages -> Source: `main` / carpeta `/docs`**.
 4. Tu pagina quedara disponible en `https://<tu-usuario>.github.io/<repo>/` con un buscador y botones de copia.
 
@@ -117,9 +121,9 @@ Variables de entorno soportadas en el addon:
 
 ```
 packages/
-  ios-app/             # Proyecto Xcode (App WebView)
+  ios-app/             # Proyecto Xcode (App WebView) + WebBundle sincronizado
   stremio-addon/       # Addon Stremio (Node.js)
-  web-client/          # HTML/JS estatico del reproductor web
+  web-client/          # Fuente canonica (public/) de la web y la app nativa
   vpn/                 # Plantillas y guias WireGuard
 scripts/
   dev-server.js        # Servidor estatico para el cliente web
@@ -129,7 +133,7 @@ playlists/
   playlist.m3u8        # Ultima copia versionada de tu lista
   player-presets.json  # Ejemplo de configuracion para el selector de reproductor
 docs/
-  index.html           # Pagina publica (GitHub Pages)
+  index.html           # Copia generada para GitHub Pages
   playlist.json        # Datos parseados (util para APIs/automatizaciones)
 ```
 

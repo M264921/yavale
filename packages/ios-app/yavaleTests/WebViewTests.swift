@@ -17,12 +17,12 @@ final class WebViewTests: XCTestCase {
         let delegate = Delegate { expectation.fulfill() }
         webView.navigationDelegate = delegate
 
-        guard let path = Bundle(for: type(of: self)).path(forResource: "index", ofType: "html") else {
+        let bundle = Bundle(for: WebViewCoordinator.self)
+        guard let url = bundle.url(forResource: "index", withExtension: "html", subdirectory: "WebBundle") else {
             XCTFail("index.html missing in bundle")
             return
         }
-        let url = URL(fileURLWithPath: path)
-        webView.loadFileURL(url, allowingReadAccessTo: url)
+        webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
         wait(for: [expectation], timeout: 5)
         XCTAssertEqual(webView.url?.path, url.path)
     }

@@ -9,7 +9,8 @@
   "scripts": {
     "dev:web": "node ./scripts/dev-server.js",
     "dev:addon": "node packages/stremio-addon/index.js",
-    "generate:playlist": "node scripts/generate-playlist-page.js"
+    "generate:playlist": "node scripts/generate-playlist-page.js",
+    "sync:webapp": "node ./scripts/sync-webapp.js"
   },
   "keywords": [],
   "author": "",

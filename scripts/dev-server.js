@@ -4,7 +4,7 @@ const { createServer } = require('node:http');
 const { extname, join, resolve } = require('node:path');
 
 const PORT = Number(process.env.PORT || 5173);
-const ROOT = resolve('packages/web-client');
+const ROOT = resolve('packages/web-client/public');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',

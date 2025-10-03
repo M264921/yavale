@@ -4,6 +4,7 @@ const path = require("path");
 const projectRoot = path.resolve(__dirname, "..");
 const playlistsDir = path.join(projectRoot, "playlists");
 const docsDir = path.join(projectRoot, "docs");
+const webPublicDir = path.join(projectRoot, "packages", "web-client", "public");
 
 const STATIC_PLAYERS = [
   {
@@ -57,6 +58,9 @@ function ensureDirs() {
   }
   if (!fs.existsSync(docsDir)) {
     fs.mkdirSync(docsDir, { recursive: true });
+  }
+  if (!fs.existsSync(webPublicDir)) {
+    fs.mkdirSync(webPublicDir, { recursive: true });
   }
 }
 
@@ -992,12 +996,16 @@ function main() {
   const entries = parseM3U8(playlistContent);
   const html = buildHtml(entries);
 
-  fs.writeFileSync(path.join(docsDir, "index.html"), html, "utf8");
-  fs.writeFileSync(path.join(docsDir, "playlist.json"), JSON.stringify(entries, null, 2), "utf8");
+  fs.writeFileSync(path.join(webPublicDir, "index.html"), html, "utf8");
+  fs.writeFileSync(path.join(webPublicDir, "playlist.json"), JSON.stringify(entries, null, 2), "utf8");
+
+  const { syncWebApp } = require('./sync-webapp');
+  syncWebApp({ silent: true });
 
   console.log(`Playlist procesada (${entries.length} entradas).`);
   console.log(`- Copia en ${targetPlaylistPath}`);
-  console.log(`- Pagina generada en ${path.join(docsDir, "index.html")}`);
+  console.log(`- Pagina generada en ${path.join(webPublicDir, "index.html")}`);
+  console.log(`- Sincronizada con docs/ y WebBundle`);
 }
 
 main();

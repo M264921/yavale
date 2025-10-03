@@ -10,6 +10,7 @@ import WebKit
 
 private enum DeepLinkConfiguration {
     static let defaultHTMLFile = "index"
+    static let defaultHTMLDirectory = "WebBundle"
     static let allowedHosts: Set<String> = ["montanaopenaitv.github.io"]
 }
 
@@ -38,8 +39,7 @@ struct WebView: UIViewRepresentable {
             context.coordinator.lastLoadedAbsoluteString = target
             let request = URLRequest(url: deepLinkURL)
             uiView.load(request)
-        } else if let filePath = Bundle.main.path(forResource: htmlFileName, ofType: "html") {
-            let fileURL = URL(fileURLWithPath: filePath)
+        } else if let fileURL = Bundle.main.url(forResource: htmlFileName, withExtension: "html", subdirectory: DeepLinkConfiguration.defaultHTMLDirectory) {
             let target = fileURL.absoluteString
             guard context.coordinator.lastLoadedAbsoluteString != target else { return }
             context.coordinator.lastLoadedAbsoluteString = target

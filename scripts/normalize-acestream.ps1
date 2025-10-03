@@ -30,8 +30,13 @@ function New-HlsUrl([string]$id) {
   $t = [System.Web.HttpUtility]::UrlEncode($Token)
   return "$EngineBase/ace/manifest.m3u8?id=$id" + ($(if($Token){ "&token=$t" } else { "" }))
 
+
+  $t = [System.Web.HttpUtility]::UrlEncode($Token)
+  return "$EngineBase/ace/manifest.m3u8?id=$id" + ($(if($Token){ "&token=$t" } else { "" }))
+
   $tokenPart = if ([string]::IsNullOrEmpty($Token)) { "" } else { "&token=" + [System.Uri]::EscapeDataString($Token) }
   return "$EngineBase/ace/manifest.m3u8?id=$id$tokenPart"
+
 
 }
 

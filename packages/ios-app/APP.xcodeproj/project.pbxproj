@@ -17,6 +17,7 @@
 		5B6DB9B22E27389300D83B17 /* yavaleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6DB9B12E27389300D83B17 /* yavaleUITests.swift */; };
 		5B6DB9B42E27389300D83B17 /* yavaleUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6DB9B32E27389300D83B17 /* yavaleUITestsLaunchTests.swift */; };
 		5B7B9EF42E279E2200184466 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B9EF32E279E2200184466 /* index.html */; };
+                5BD0C0F22E2B2A4D00D83B17 /* WebBundle in Resources */ = {isa = PBXBuildFile; fileRef = 5BD0C0F12E2B2A4D00D83B17 /* WebBundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		5B6DB9B32E27389300D83B17 /* yavaleUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = yavaleUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		5B7B9EF32E279E2200184466 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		5B8A40A92E2AFA6C00D83B17 /* APP.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = APP.entitlements; sourceTree = "<group>"; };
+                5BD0C0F12E2B2A4D00D83B17 /* WebBundle */ = {isa = PBXFileReference; lastKnownFileType = folder; path = WebBundle; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				5B7B9EF32E279E2200184466 /* index.html */,
+				5BD0C0F12E2B2A4D00D83B17 /* WebBundle */,
 				5B6DB9902E27388D00D83B17 /* yavale */,
 				5B6DB9A62E27389300D83B17 /* yavaleTests */,
 				5B6DB9B02E27389300D83B17 /* yavaleUITests */,
@@ -250,6 +253,7 @@
 				5B7B9EF42E279E2200184466 /* index.html in Resources */,
 				5B6DB9992E27389200D83B17 /* Preview Assets.xcassets in Resources */,
 				5B6DB9962E27389200D83B17 /* Assets.xcassets in Resources */,
+				5BD0C0F22E2B2A4D00D83B17 /* WebBundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
