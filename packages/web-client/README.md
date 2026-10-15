@@ -81,9 +81,15 @@ No se garantiza que dos motores tengan el mismo catálogo o los mismos dispositi
 
 ### Requisito para GitHub Pages
 
-El motor (o un proxy bajo tu control) debe admitir **HTTPS** y permitir peticiones
+Un motor externo (o un proxy bajo tu control) debe admitir **HTTPS** y permitir peticiones
 desde el origen de tu web mediante **CORS**. Una dirección HTTP puede funcionar
 al abrirla directamente y aun así quedar bloqueada desde Pages, que usa HTTPS.
+La dirección de loopback `http://127.0.0.1:6878` tiene un tratamiento especial:
+puede utilizarse desde HTTPS en navegadores compatibles, que pueden solicitar
+permiso de acceso a la red local/loopback. CORS sigue siendo necesario.
+Esa dirección siempre se refiere al equipo que abre la página: desde un móvil
+no apunta al PC. El cliente identifica las peticiones a loopback con
+`targetAddressSpace: "loopback"` en navegadores que lo admitan.
 El código muestra el error; no cambia las opciones de seguridad del navegador
 ni expone automáticamente la API del motor a Internet.
 La dirección `toninomontana.ddns.net:6878` que existe en el addon es una

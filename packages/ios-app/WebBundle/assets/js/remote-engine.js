@@ -13,6 +13,9 @@
     }
     return base.replace(/\/+$/, "");
   }
+  function isLoopback(base) {
+    return /^https?:\/\/(?:localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::\d+)?(?:\/|$)/i.test(base);
+  }
   function infohash(url) {
     const text = String(url || "");
     const match = text.match(/^acestream:\/\/([a-f0-9]{40})\/?$/i) ||
@@ -83,7 +86,8 @@
           (async function () {
             const response = await fetcher(base + "/" + endpoint + "?" + suffix, {
               method: "GET", mode: "cors", credentials: "omit", cache: "no-store",
-              signal: controller ? controller.signal : signal
+              signal: controller ? controller.signal : signal,
+              ...(isLoopback(base) ? { targetAddressSpace: "loopback" } : {})
             });
             if (!response.ok) {
               const error = new Error("El motor respondió HTTP " + response.status + ".");
@@ -103,7 +107,9 @@
         ]);
       } catch (error) {
         if (error && error.name === "TypeError") {
-          throw new Error("No se pudo contactar con el motor. Comprueba la dirección, HTTPS y el acceso desde esta web (CORS).");
+          throw new Error(isLoopback(base) ?
+            "No se pudo contactar con AceStream de este PC. Comprueba que esté abierto, el permiso de acceso local del navegador y CORS." :
+            "No se pudo contactar con el motor. Comprueba la dirección, HTTPS y el acceso desde esta web (CORS).");
         }
         throw error;
       } finally {
@@ -156,5 +162,5 @@
     }
     return { api, catalog, streamUrl: (hash, parameter) => streamUrl(base, hash, parameter) };
   }
-  return { normalizeBaseUrl, infohash, reference, streamUrl, readPage, createClient };
+  return { normalizeBaseUrl, isLoopback, infohash, reference, streamUrl, readPage, createClient };
 });

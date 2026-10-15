@@ -88,6 +88,9 @@ test("playback uses infohash instead of content_id, and settings reject embedded
   assert.equal(Engine.infohash("acestream:?infohash=" + hash(12)), hash(12));
   assert.equal(Engine.infohash("acestream://" + hash(12)), hash(12));
   assert.equal(Engine.infohash("acestream://invalid"), null);
+  assert.equal(Engine.isLoopback("http://127.0.0.1:6878"), true);
+  assert.equal(Engine.isLoopback("http://localhost:6878"), true);
+  assert.equal(Engine.isLoopback("http://localhost.evil.example"), false);
   assert.deepEqual(Engine.reference("acestream://" + hash(12)), { hash: hash(12), type: "content_id" });
   assert.deepEqual(Engine.reference("magnet:?xt=urn:btih:" + hash(12)), { hash: hash(12), type: "infohash" });
   assert.equal(Engine.streamUrl("https://engine.example", hash(12), "content_id"),
