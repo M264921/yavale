@@ -15,7 +15,7 @@ test('a started fixture process can be stopped through its verified PID file', a
     assert.equal(killByPidFile(state), true);
     assert.equal(fs.existsSync(state), false);
   } finally {
-    if (pid) { try { process.kill(pid); } catch {} }
+    if (fs.existsSync(state)) { try { killByPidFile(state); } catch {} }
     assert.equal(path.dirname(path.resolve(dir)), path.resolve(os.tmpdir()));
     fs.rmSync(dir, { recursive: true, force: true });
   }
