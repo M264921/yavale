@@ -284,7 +284,8 @@
 <body>
   <header>
     <h1>Playlist AceStream</h1>
-    <p>Actualizada: 2025-10-03T17:33:59.582Z</p>
+    <p>Playlist incluida: 2025-10-03T17:33:59.582Z</p>
+    <p id="catalog-summary" role="status"></p>
     <div class="toolbar">
       <input id="search" type="search" placeholder="Buscar por nombre, grupo o ID" />
       <select id="group">
@@ -292,35 +293,43 @@
       </select>
     </div>
     <details class="settings">
-      <summary>Configurar AceStream (opcional)</summary>
+      <summary>Configurar motor y catálogo</summary>
       <form id="acestream-form" class="settings-form">
         <div class="field">
           <label for="acestream-base">Host o URL base</label>
-          <input id="acestream-base" name="baseUrl" type="text" placeholder="http://127.0.0.1:6878" />
+          <input id="acestream-base" name="baseUrl" type="text" placeholder="https://motor.tudominio.com" />
         </div>
         <div class="field">
           <label for="acestream-webui">Token WebUI (opcional)</label>
-          <input id="acestream-webui" name="webUiToken" type="text" placeholder="qdfEbt9IzPwB" />
+          <input id="acestream-webui" name="webUiToken" type="password" autocomplete="off" placeholder="Token WebUI (opcional)" />
         </div>
         <div class="field">
-          <label for="acestream-access">Access token del engine</label>
-          <input id="acestream-access" name="accessToken" type="text" placeholder="4ebcfe..." />
+          <label for="acestream-access">Access token del motor (si lo requiere)</label>
+          <input id="acestream-access" name="accessToken" type="password" autocomplete="off" placeholder="Token API (opcional)" />
+        </div>
+        <div class="field">
+          <label><input name="remoteCatalog" type="checkbox" /> Usar catálogo del motor y actualizar cada 5 minutos</label>
         </div>
       </form>
-      <p class="settings-note">El motor de AceStream suele escuchar en http://127.0.0.1:6878. Si abres esta pagina desde HTTPS, el navegador puede bloquear las peticiones.</p>
+      <p class="settings-note">El catálogo y los dispositivos se consultan en el motor configurado. Desde esta página HTTPS, el motor debe admitir HTTPS y acceso desde esta web (CORS).</p>
       <div class="settings-actions">
         <button type="button" id="acestream-save">Guardar</button>
         <button type="button" id="acestream-fetch">Obtener token desde WebUI</button>
-        <button type="button" id="acestream-refresh">Probar conexion</button>
+        <button type="button" id="acestream-refresh">Probar conexión</button>
+        <button type="button" id="catalog-refresh">Sincronizar canales</button>
       </div>
       <p class="settings-status" id="acestream-status" role="status"></p>
     </details>
   </header>
   <main id="playlist" role="list"></main>
+  <div class="settings-actions"><button id="catalog-more" type="button" hidden>Mostrar más</button></div>
   <footer>Generado desde playlist.m3u8 - Proyecto YaVale</footer>
+<script src="./assets/js/remote-engine.js"></script>
 <script>
   (function () {
-    const playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
+    let playlist = [{"title":"M. Deportes HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8aba55f4f1f47def54447e845518109d797339e7"},{"title":"M. LaLiga","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c1959a27edb0b94c5005a2dea93b7a70d4312f1c"},{"title":"F1","attributes":{"acestream-autosearch":"1","group-title":"2025"},"duration":-1,"url":"magnet:?xt=urn:btih:b0999d6facfbae2944b9c7bba442eeea9cd9d4b2"},{"title":"DAZN4","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c21a2524a8de3e1e5b126f2677a3e993d9aa07c4"},{"title":"DAZN3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:98fba924421aa1e4bd28e74d74a2726d0459b594"},{"title":"Alien Planeta Tierra","attributes":{"acestream-autosearch":"1"},"duration":-1,"url":"magnet:?xt=urn:btih:eb197728d8790127be4e866e7500a70f82687afd"},{"title":"Champions League","attributes":{"group-title":"futbol"},"duration":-1,"url":"acestream://06013d0c0dcdd677ae09363db1b1f93bd97589bd"},{"title":"DAZN1","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:0560234787945a17522e284c4c22bb4df29f33b0"},{"title":"DAZN2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:c93a0d4914713db942fbb210bac467b0224c63a6"},{"title":"s","attributes":{"acestream-autosearch":"1","group-title":"deportes"},"duration":-1,"url":"magnet:?xt=urn:btih:868cf72e65093a8eb9fc4b9c78ed90c2dd7fdb7f"},{"title":"M. Golf HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:b715ba3d23d3dca6736ac86990efe105087c3401"},{"title":"DAZ","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:61b4e295ae003dc415babbe7c7a6c37507bd4c80"},{"title":"LALIGA","attributes":{"acestream-autosearch":"1","group-title":"amateur"},"duration":-1,"url":"magnet:?xt=urn:btih:8a25653a2f774f4ae1062d38a30dcd714d304a3a"},{"title":"NBA TV [US]","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3dea4f93071fed3f67be4518618cd73a6ca77a"},{"title":"Campeones 1080 elcano.top zeronet http://127.0.0.1:43110/18D6dPcsjLrjg2hhnYqKzNh2W6QtXrDwF/  https://ipfs.io/ipns/elcano.top","attributes":{"group-title":"sport"},"duration":-1,"url":"acestream://97df5b7824948972d041d8ca2a4d29c90b641bc9"},{"title":"M. Liga de Campeones","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8c1c3eae077f3a786ed2f0a426197ea93fdf7373"},{"title":"M. Liga de Campeones 2","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:cc3d749cfd30877b418f1d59a80d9291e0f091c8"},{"title":"M. Liga de Campeones 3","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:8cc8e3c092fa238bc0cbc65382ae436131fc3eab"},{"title":"DAZN F1 HD","attributes":{"acestream-autosearch":"1","group-title":"sport"},"duration":-1,"url":"magnet:?xt=urn:btih:6d325cda6ed591647ef5e91edd043147bce8be30"}];
+    const bundledPlaylist = playlist.slice();
+    const Engine = window.YaValeEngine;
     const staticPlayers = [{"id":"acestream","label":"Ace Stream (engine local)","type":"acestream"},{"id":"vlc","label":"VLC (iOS/macOS)","type":"template","template":"vlc-x-callback://x-callback-url/stream?url={{url}}"},{"id":"infuse","label":"Infuse","type":"template","template":"infuse://x-callback-url/play?url={{url}}"},{"id":"kodi","label":"Kodi","type":"template","template":"kodi://play?item={{url}}"}];
     var previousWindowData = window.Window_DATA || {};
     window.Window_DATA = {
@@ -344,83 +353,162 @@
     const fetchButton = document.getElementById("acestream-fetch");
     const refreshButton = document.getElementById("acestream-refresh");
     const statusNode = document.getElementById("acestream-status");
+    const catalogButton = document.getElementById("catalog-refresh");
+    const catalogSummary = document.getElementById("catalog-summary");
+    const moreButton = document.getElementById("catalog-more");
     const state = {
       settings: loadSettings(),
       cache: new Map(),
-      statusTimer: null
+      statusTimer: null,
+      engineClient: null,
+      catalogGeneration: 0,
+      catalogAbort: null,
+      catalogTimer: null,
+      catalogBase: "",
+      catalogUpdatedAt: null,
+      visibleCount: 100
     };
     if (window.Window_DATA) {
       window.Window_DATA.state = state;
     }
-    state.settings.baseUrl = normalizeBaseUrl(state.settings.baseUrl);
+    try { state.settings.baseUrl = normalizeBaseUrl(state.settings.baseUrl); }
+    catch (error) { state.settings = defaultSettings(); }
     saveSettings(state.settings);
     writeSettingsToForm(state.settings);
     populateFilterOptions();
     initSettingsWarnings();
-    render(playlist);
+    applyFilters();
+    activateCatalog();
+    if (moreButton) moreButton.addEventListener("click", function () {
+      state.visibleCount += 100;
+      applyFilters();
+    });
     if (searchInput) {
       searchInput.addEventListener("input", applyFilters);
     }
     if (groupFilter) {
       groupFilter.addEventListener("change", applyFilters);
     }
-    if (saveButton) {
-      saveButton.addEventListener("click", function (event) {
-        event.preventDefault();
-        const formSettings = readSettingsFromForm();
-        formSettings.baseUrl = normalizeBaseUrl(formSettings.baseUrl);
-        saveSettings(formSettings);
+    function saveFormSettings() {
+      try {
+        const next = readSettingsFromForm();
+        next.baseUrl = normalizeBaseUrl(next.baseUrl);
+        saveSettings(next);
         writeSettingsToForm(state.settings);
-        setStatus("Ajustes guardados.", "success");
-      });
+        return true;
+      } catch (error) {
+        setStatus(error.message, "error");
+        return false;
+      }
     }
-    if (fetchButton) {
-      fetchButton.addEventListener("click", function (event) {
-        event.preventDefault();
-        const formSettings = readSettingsFromForm();
-        formSettings.baseUrl = normalizeBaseUrl(formSettings.baseUrl);
-        saveSettings(formSettings);
-        fetchParamsFromWebUi().then(function (params) {
-          if (params && params.access_token) {
-            const updated = Object.assign({}, state.settings, { accessToken: params.access_token });
-            saveSettings(updated);
-            writeSettingsToForm(state.settings);
-            setStatus("Token actualizado desde AceStream WebUI.", "success");
-          } else {
-            setStatus("No se encontró access token en la WebUI.", "warning");
+    if (saveButton) saveButton.addEventListener("click", function () {
+      if (!saveFormSettings()) return;
+      activateCatalog();
+      setStatus("Ajustes guardados.", "success");
+    });
+    if (catalogButton) catalogButton.addEventListener("click", function () {
+      settingsForm.elements["remoteCatalog"].checked = true;
+      if (saveFormSettings()) activateCatalog();
+    });
+    if (fetchButton) fetchButton.addEventListener("click", function () {
+      if (!saveFormSettings()) return;
+      activateCatalog();
+      fetchParamsFromWebUi().then(function () {
+        writeSettingsToForm(state.settings);
+        activateCatalog();
+        setStatus("Token actualizado desde AceStream WebUI.", "success");
+      }).catch(function (error) { setStatus(error.message, "error"); });
+    });
+    if (refreshButton) refreshButton.addEventListener("click", function () {
+      if (!saveFormSettings()) return;
+      activateCatalog();
+      apiRequest({ method: "get_status" }).then(function () {
+        setStatus("El motor respondió correctamente.", "success");
+      }).catch(function (error) { setStatus(error.message, "error"); });
+    });
+    function replacePlaylist(next) {
+      playlist = next;
+      if (window.Window_DATA) window.Window_DATA.playlist = playlist;
+      state.cache.clear();
+      state.visibleCount = 100;
+      populateFilterOptions();
+      applyFilters();
+    }
+    function describeCatalog() {
+      if (!catalogSummary) return;
+      if (state.settings.remoteCatalog && state.catalogBase === state.settings.baseUrl && state.catalogUpdatedAt) {
+        catalogSummary.textContent = playlist.length + " enlaces del motor · Actualizados: " + state.catalogUpdatedAt.toLocaleString();
+      } else {
+        catalogSummary.textContent = bundledPlaylist.length + " enlaces de la playlist incluida. Configura el motor y pulsa «Sincronizar canales» para obtener el catálogo actual.";
+      }
+    }
+    function activateCatalog() {
+      if (!state.settings.remoteCatalog) {
+        state.catalogBase = "";
+        state.catalogUpdatedAt = null;
+        replacePlaylist(bundledPlaylist.slice());
+        describeCatalog();
+        return;
+      }
+      if (state.catalogBase !== state.settings.baseUrl) {
+        state.catalogBase = "";
+        state.catalogUpdatedAt = null;
+        replacePlaylist(bundledPlaylist.slice());
+      } else {
+        applyFilters(); // Refresh every link when the engine settings change.
+      }
+      refreshCatalog();
+    }
+    async function refreshCatalog() {
+      if (!state.settings.remoteCatalog) return;
+      const generation = ++state.catalogGeneration;
+      if (state.catalogAbort) state.catalogAbort.abort();
+      clearTimeout(state.catalogTimer);
+      const controller = new AbortController();
+      state.catalogAbort = controller;
+      const base = state.settings.baseUrl;
+      if (catalogButton) catalogButton.disabled = true;
+      try {
+        setStatus("Consultando todas las páginas del catálogo…", "info");
+        const next = await getEngineClient().catalog({
+          signal: controller.signal,
+          onProgress: function (count) {
+            if (generation === state.catalogGeneration) setStatus("Recibidos " + count + " enlaces…", "info");
           }
-        }).catch(function (error) {
-          setStatus(error && error.message ? error.message : "Error al leer la WebUI.", "error");
         });
-      });
-    }
-    if (refreshButton) {
-      refreshButton.addEventListener("click", function (event) {
-        event.preventDefault();
-        const formSettings = readSettingsFromForm();
-        formSettings.baseUrl = normalizeBaseUrl(formSettings.baseUrl);
-        saveSettings(formSettings);
-        const firstPlayable = playlist.find(function (item) {
-          return Boolean(extractInfoHash(item.url));
-        });
-        if (!firstPlayable) {
-          setStatus("No hay entradas con hash para probar.", "info");
-          return;
+        if (generation !== state.catalogGeneration || !state.settings.remoteCatalog) return;
+        if (!next.length) throw new Error("El motor devolvió un catálogo vacío.");
+        state.catalogBase = base;
+        state.catalogUpdatedAt = new Date();
+        replacePlaylist(next);
+        describeCatalog();
+        setStatus("Catálogo sincronizado: " + next.length + " enlaces.", "success");
+      } catch (error) {
+        if (generation !== state.catalogGeneration) return;
+        describeCatalog();
+        if (catalogSummary) catalogSummary.textContent += " · No se pudo actualizar; se conserva esta lista.";
+        setStatus(error.message, "error");
+      } finally {
+        if (generation === state.catalogGeneration) {
+          state.catalogAbort = null;
+          if (catalogButton) catalogButton.disabled = false;
+          state.catalogTimer = window.setTimeout(function () {
+            if (!document.hidden) refreshCatalog();
+            else state.catalogTimer = window.setTimeout(refreshCatalog, 300000);
+          }, 300000);
         }
-        const infohash = extractInfoHash(firstPlayable.url);
-        loadAvailablePlayers(infohash, { force: true }).then(function (players) {
-          if (players.length) {
-            setStatus("Se detectaron " + players.length + " reproductores.", "success");
-          } else {
-            setStatus("No se detectaron reproductores disponibles.", "info");
-          }
-        }).catch(function (error) {
-          setStatus(error && error.message ? error.message : "Error en la conexion con AceStream.", "error");
-        });
-      });
+      }
+    }
+    function getEngineClient() {
+      if (!state.engineClient) state.engineClient = Engine.createClient(state.settings);
+      return state.engineClient;
+    }
+    function playbackUrl(item) {
+      const reference = Engine.reference(item.url);
+      return state.settings.remoteCatalog && reference ? getEngineClient().streamUrl(reference.hash, reference.type) : item.url;
     }
     function defaultSettings() {
-      return { baseUrl: "http://127.0.0.1:6878", accessToken: "", webUiToken: "" };
+      return { baseUrl: "http://127.0.0.1:6878", accessToken: "", webUiToken: "", remoteCatalog: false };
     }
     function loadSettings() {
       try {
@@ -436,6 +524,12 @@
       }
     }
     function saveSettings(nextSettings) {
+      state.catalogGeneration++;
+      if (state.catalogAbort) state.catalogAbort.abort();
+      clearTimeout(state.catalogTimer);
+      state.catalogAbort = null;
+      state.engineClient = null;
+      if (catalogButton) catalogButton.disabled = false;
       state.settings = Object.assign(defaultSettings(), nextSettings);
       state.cache.clear();
       try {
@@ -447,6 +541,9 @@
     function writeSettingsToForm(settings) {
       if (!settingsForm) {
         return;
+      }
+      if (settingsForm.elements["remoteCatalog"]) {
+        settingsForm.elements["remoteCatalog"].checked = Boolean(settings.remoteCatalog);
       }
       if (settingsForm.elements["baseUrl"]) {
         settingsForm.elements["baseUrl"].value = settings.baseUrl || "";
@@ -466,18 +563,12 @@
       return {
         baseUrl: (formData.get("baseUrl") || "").trim() || state.settings.baseUrl || defaultSettings().baseUrl,
         webUiToken: (formData.get("webUiToken") || "").trim(),
-        accessToken: (formData.get("accessToken") || "").trim()
+        accessToken: (formData.get("accessToken") || "").trim(),
+        remoteCatalog: formData.has("remoteCatalog")
       };
     }
     function normalizeBaseUrl(input) {
-      let url = input || defaultSettings().baseUrl;
-      if (url.indexOf("://") === -1) {
-        url = "http://" + url;
-      }
-      while (url.length > 0 && url.charAt(url.length - 1) === "/") {
-        url = url.slice(0, -1);
-      }
-      return url;
+      return Engine.normalizeBaseUrl(input || defaultSettings().baseUrl);
     }
     function setStatus(message, type) {
       if (!statusNode) {
@@ -547,17 +638,7 @@
       }
     }
     function extractInfoHash(url) {
-      if (!url) {
-        return null;
-      }
-      if (url.indexOf("acestream://") === 0) {
-        return url.slice("acestream://".length);
-      }
-      if (url.indexOf("magnet:?") === 0) {
-        const match = url.match(/xt=urn:btih:([^&]+)/i);
-        return match ? match[1] : null;
-      }
-      return null;
+      return Engine.infohash(url);
     }
     function buildStaticHref(player, url) {
       if (player.type === "acestream") {
@@ -606,50 +687,27 @@
         });
     }
     function apiRequest(params) {
-      if (!state.settings.accessToken) {
-        return Promise.reject(new Error("Configura el access token de AceStream."));
-      }
-      const base = normalizeBaseUrl(state.settings.baseUrl);
-      const url = new URL("/server/api/", base);
-      Object.keys(params).forEach(function (key) {
-        const value = params[key];
-        if (value !== undefined && value !== null && value !== "") {
-          url.searchParams.set(key, value);
-        }
+      return getEngineClient().api(params).catch(function (error) {
+        recordLog({ kind: "api-error", method: params.method || "", message: error.message });
+        throw error;
       });
-      url.searchParams.set("token", state.settings.accessToken);
-      return fetch(url.toString(), { method: "GET", mode: "cors", credentials: "omit" })
-        .then(function (response) {
-          if (!response.ok) {
-            throw new Error("HTTP " + response.status);
-          }
-          return response.json();
-        })
-        .then(function (data) {
-          if (data && data.error) {
-            throw new Error(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
-          }
-          return data && data.result ? data.result : {};
-        })
-        .catch(function (error) {
-          const message = describeNetworkError(error);
-          recordLog({ kind: "api-error", method: params.method || "", message: message });
-          throw new Error(message);
-        });
     }
     function loadAvailablePlayers(infohash, options) {
       const opts = options || {};
       if (!infohash) {
         return Promise.resolve([]);
       }
-      const cached = state.cache.get(infohash);
+      const cacheKey = "players";
+      const cached = state.cache.get(cacheKey);
       const now = Date.now();
       if (!opts.force && cached && now - cached.timestamp < CACHE_TTL) {
         return Promise.resolve(cached.players);
       }
-      return apiRequest({ method: "get_available_players", infohash: infohash }).then(function (result) {
+      const generation = state.catalogGeneration;
+      return apiRequest({ method: "get_available_players", content_id: infohash }).then(function (result) {
+        if (generation !== state.catalogGeneration) return [];
         const players = Array.isArray(result.players) ? result.players : [];
-        state.cache.set(infohash, { players: players, timestamp: now });
+        state.cache.set(cacheKey, { players: players, timestamp: now });
         recordLog({ kind: "players", infohash: infohash, count: players.length });
         return players;
       }).catch(function (error) {
@@ -666,7 +724,7 @@
       heading.textContent = "Aplicaciones locales";
       listEl.appendChild(heading);
       staticPlayers.forEach(function (player) {
-        const href = buildStaticHref(player, item.url);
+        const href = buildStaticHref(player, player.type === "acestream" ? item.url : playbackUrl(item));
         if (!href) {
           return;
         }
@@ -688,13 +746,6 @@
     }
     function renderDynamicPlayers(listEl, item) {
       const infohash = extractInfoHash(item.url);
-      if (!state.settings.accessToken) {
-        const hint = document.createElement("li");
-        hint.className = "player-picker__hint";
-        hint.textContent = "Añade tu access token de AceStream para listar dispositivos.";
-        listEl.appendChild(hint);
-        return;
-      }
       if (!infohash) {
         const hint = document.createElement("li");
         hint.className = "player-picker__hint";
@@ -704,13 +755,15 @@
       }
       const heading = document.createElement("li");
       heading.className = "player-picker__heading";
-      heading.textContent = "Dispositivos detectados";
+      heading.textContent = "Dispositivos del motor configurado";
       listEl.appendChild(heading);
       const status = document.createElement("li");
       status.className = "player-picker__hint";
       status.textContent = "Buscando reproductores...";
+      const generation = state.catalogGeneration;
       listEl.appendChild(status);
       loadAvailablePlayers(infohash).then(function (players) {
+        if (generation !== state.catalogGeneration) return;
         if (listEl.contains(status)) {
           listEl.removeChild(status);
         }
@@ -727,10 +780,10 @@
           link.href = "#";
           link.className = "player-picker__link";
           link.dataset.kind = "dynamic";
-          link.textContent = player.name + (player.protocol ? " (" + player.protocol + ")" : "");
+          link.textContent = (player.name || "Reproductor") + (player.protocol ? " (" + player.protocol + ")" : "");
           link.addEventListener("click", function (event) {
             event.preventDefault();
-            openDynamicPlayer(player, infohash, item.title);
+            openDynamicPlayer(player, Engine.reference(item.url), item.title);
           });
           li.appendChild(link);
           listEl.appendChild(li);
@@ -742,33 +795,20 @@
         setStatus(message, "error");
       });
     }
-    function openDynamicPlayer(player, infohash, title) {
-      if (player.type === "aircast") {
-        openAircastPlayer(player, infohash);
-        return;
-      }
-      apiRequest({ method: "open_in_player", player_id: player.id, infohash: infohash }).then(function () {
-        const channelName = title || "el canal";
-        setStatus("Reproductor \"" + player.name + "\" recibió la orden de reproducir " + channelName + ".", "success");
-      }).catch(function (error) {
-        setStatus(error && error.message ? error.message : "No se pudo abrir el reproductor.", "error");
-      });
-    }
-    function openAircastPlayer(player, infohash) {
-      const base = normalizeBaseUrl(state.settings.baseUrl);
-      const url = new URL("/remote-control", base);
-      url.searchParams.set("device_id", player.id);
-      url.searchParams.set("autoplay", "yes");
-      if (infohash) {
-        url.searchParams.set("infohash", infohash);
-      }
-      window.open(url.toString(), "_blank", "noopener");
-      setStatus("Abriendo panel remoto para \"" + player.name + "\".", "info");
+    function openDynamicPlayer(player, reference, title) {
+      if (!reference) return;
+      const params = { method: "open_in_player", player_id: player.id };
+      params[reference.type] = reference.hash;
+      apiRequest(params).then(function () {
+        setStatus("Se envió al motor la orden de reproducir " + (title || "el canal") + " en " + player.name + ".", "success");
+      }).catch(function (error) { setStatus(error.message, "error"); });
     }
     function populateFilterOptions() {
       if (!groupFilter) {
         return;
       }
+      const selectedGroup = groupFilter.value;
+      while (groupFilter.options.length > 1) groupFilter.remove(1);
       const groups = Array.from(new Set(playlist.map(function (item) {
         return item.attributes && item.attributes["group-title"];
       }).filter(function (value) {
@@ -780,6 +820,7 @@
         option.textContent = group;
         groupFilter.appendChild(option);
       });
+      groupFilter.value = groups.includes(selectedGroup) ? selectedGroup : "";
     }
     function render(list) {
       if (!playlistContainer) {
@@ -792,7 +833,8 @@
         playlistContainer.appendChild(empty);
         return;
       }
-      list.forEach(function (item) {
+      if (moreButton) { moreButton.hidden = list.length <= state.visibleCount; moreButton.textContent = "Mostrar 100 más (" + Math.min(state.visibleCount, list.length) + " de " + list.length + ")"; }
+      list.slice(0, state.visibleCount).forEach(function (item) {
         const card = document.createElement("article");
         card.className = "card";
         card.setAttribute("role", "listitem");
@@ -821,8 +863,10 @@
         actions.className = "actions";
         const playLink = document.createElement("a");
         playLink.className = "play";
-        playLink.href = item.url;
-        playLink.textContent = "Reproducir";
+        playLink.href = playbackUrl(item);
+        const hash = extractInfoHash(item.url);
+        if (hash) playLink.dataset.infohash = hash;
+        playLink.textContent = state.settings.remoteCatalog ? "Reproducir con motor" : "Reproducir";
         playLink.target = "_blank";
         playLink.rel = "noreferrer";
         actions.appendChild(playLink);
@@ -891,7 +935,8 @@
         playlistContainer.appendChild(card);
       });
     }
-    function applyFilters() {
+    function applyFilters(event) {
+      if (event && event.type) state.visibleCount = 100;
       const term = searchInput ? searchInput.value.toLowerCase() : "";
       const group = groupFilter ? groupFilter.value : "";
       const filtered = playlist.filter(function (item) {
