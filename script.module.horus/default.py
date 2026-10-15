@@ -21,6 +21,7 @@
 #-------------------------------------------------------------------------------
 
 from lib.utils import *
+import ast
 
 from acestream.engine import Engine
 from acestream.stream import Stream
@@ -310,7 +311,9 @@ def read_torrent(torrent,headers=None):
             if not headers:
                 headers = dict()
             elif not isinstance(headers,dict):
-                headers = eval(headers)
+                headers = ast.literal_eval(headers)
+                if not isinstance(headers, dict):
+                    raise ValueError('Headers must be a dictionary')
 
             if not 'User-Agent' in headers:
                 headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0'
@@ -643,7 +646,7 @@ def search(url):
                                          url="https://ipfs.io" + ace))
             else:
                 try:
-                    for n, it in enumerate(eval(re.findall('(\[.*?])', data)[0])):
+                    for n, it in enumerate(ast.literal_eval(re.findall('(\[.*?])', data)[0])):
                         label = it.get("name", it.get("title", it.get("label")))
                         id = it.get("id", it.get("url"))
                         id = re.findall('([0-9a-f]{40})', id, re.I)[0]

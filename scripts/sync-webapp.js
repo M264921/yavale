@@ -10,6 +10,7 @@ const iosBundleDir = path.join(projectRoot, 'packages', 'ios-app', 'WebBundle');
 const DEFAULT_ITEMS = [
   '.nojekyll',
   'index.html',
+  'open-stream.html',
   'playlist.json',
   'apple-app-site-association',
   '.well-known',
@@ -22,6 +23,10 @@ function ensureDirectory(dir) {
 }
 
 function removeIfExists(targetPath) {
+  const resolved = path.resolve(targetPath);
+  if (![docsDir, iosBundleDir].some(root => resolved.startsWith(path.resolve(root) + path.sep))) {
+    throw new Error('Destino de sincronizacion fuera del bundle: ' + targetPath);
+  }
   if (fs.existsSync(targetPath)) {
     fs.rmSync(targetPath, { recursive: true, force: true });
   }

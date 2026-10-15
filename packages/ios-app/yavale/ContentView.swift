@@ -11,7 +11,7 @@ import WebKit
 private enum DeepLinkConfiguration {
     static let defaultHTMLFile = "index"
     static let defaultHTMLDirectory = "WebBundle"
-    static let allowedHosts: Set<String> = ["montanaopenaitv.github.io"]
+    static let allowedHosts: Set<String> = ["m264921.github.io"]
 }
 
 final class WebViewCoordinator: NSObject {

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Abrir enlace · MontanaTV</title>
+<style>body{font:1rem system-ui;max-width:42rem;margin:3rem auto;padding:1rem}label{display:block;margin-top:1rem}input{box-sizing:border-box;width:100%;padding:.7rem}button,a{display:inline-block;margin-top:1rem}output{display:block;margin-top:1rem;overflow-wrap:anywhere}</style>
+<h1>Abrir un enlace AceStream</h1>
+<p>Configura un motor accesible desde este dispositivo. El enlace se prepara aquí; la reproducción depende del motor y del reproductor.</p>
+<form id="stream-form">
+  <label for="ace-id">Hash o enlace AceStream</label>
+  <input id="ace-id" required placeholder="acestream://…" autocomplete="off">
+  <label for="engine">Dirección de tu motor</label>
+  <input id="engine" type="url" required value="http://127.0.0.1:6878">
+  <button>Preparar enlace</button>
+</form>
+<output id="result" aria-live="polite"></output>
+<a href="./">Volver al catálogo</a>
+<script src="assets/open-stream.js"></script>
+<script>
+document.getElementById('stream-form').addEventListener('submit', function (event) {
+  event.preventDefault();
+  const result = document.getElementById('result');
+  result.replaceChildren();
+  try {
+    const url = buildStreamUrl(document.getElementById('ace-id').value, document.getElementById('engine').value);
+    const link = document.createElement('a');
+    link.href = url; link.textContent = 'Abrir en el motor'; link.rel = 'noreferrer';
+    result.append(link, document.createElement('br'), document.createTextNode(url));
+  } catch (error) { result.textContent = error.message; }
+});
+</script>
+</html>

@@ -1,12 +1,12 @@
 {
   "name": "@yavale/stremio-addon",
-  "version": "1.1.0",
-  "description": "Addon Stremio con catálogo AceStream remoto para MontanaTV",
+  "version": "1.2.0",
+  "description": "Addon Stremio con catalogo AceStream configurable para MontanaTV",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "stremio-addon-sdk": "1.1.x"
+    "stremio-addon-sdk": "^1.6.10"
   }
 }

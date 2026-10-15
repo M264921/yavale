@@ -1,36 +1,21 @@
-# This workflow will build a Swift project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
-
 name: Swift
-
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
-
+    branches: [main]
+permissions:
+  contents: read
 jobs:
   build:
-
     runs-on: macos-latest
-
+    timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
-    - name: Install xcpretty
-      run: sudo gem install xcpretty
-    - name: Build iOS app
-      run: |
-        set -o pipefail
-        xcodebuild \
-          -project packages/ios-app/APP.xcodeproj \
-          -scheme APP \
-          -destination 'platform=iOS Simulator,OS=18.5,name=iPhone SE (3rd generation)' \
-          clean build | xcpretty
-    - name: Run tests
-      run: |
-        set -o pipefail
-        xcodebuild \
-          -project packages/ios-app/APP.xcodeproj \
-          -scheme APP \
-          -destination 'platform=iOS Simulator,OS=18.5,name=iPhone SE (3rd generation)' \
-          test | xcpretty
+      - uses: actions/checkout@v4
+      - name: Select available iPhone simulator
+        run: echo "IOS_DESTINATION=$(python3 scripts/ci-simulator.py)" >> "$GITHUB_ENV"
+      - name: Build and test iOS app without signing
+        run: |
+          set -o pipefail
+          xcodebuild -project packages/ios-app/APP.xcodeproj -scheme APP \
+            -destination "$IOS_DESTINATION" CODE_SIGNING_ALLOWED=NO build test
