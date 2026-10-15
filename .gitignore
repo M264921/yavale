@@ -28,3 +28,12 @@ MontanaOpenAiTV_Repo.zip
 scripts/_tmp_init.js
 scripts/_tmp_playlist.html
 scripts/_tmp_server.js
+
+# Configuracion privada y estado local
+.env
+.env.*
+!.env.example
+.montana-run/
+*.pid
+*.pid.json
+__pycache__/

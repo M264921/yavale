@@ -10,10 +10,15 @@
     "dev:web": "node ./scripts/dev-server.js",
     "dev:addon": "node packages/stremio-addon/index.js",
     "generate:playlist": "node scripts/generate-playlist-page.js",
-    "sync:webapp": "node ./scripts/sync-webapp.js"
+    "sync:webapp": "node ./scripts/sync-webapp.js",
+    "test": "node --test tests/*.test.js packages/montana-cli/tests/*.test.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "workspaces": [
+    "packages/stremio-addon",
+    "packages/montana-cli"
+  ]
 }

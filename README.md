@@ -11,11 +11,11 @@ Monorepo personal para centralizar todo el ecosistema Montana/YaVale:
 
 ## Enlaces universales entre la app iOS y la web
 
-Si publicas el sitio estatico (`docs/`) en GitHub Pages puedes hacer que los enlaces `https://montanaopenaitv.github.io/yavale/...`
+Si publicas el sitio estatico (`docs/`) en GitHub Pages puedes hacer que los enlaces `https://m264921.github.io/yavale/...`
 abran directamente la app nativa en iPhone/iPad.
 
 1. **Dominio asociado**
-   - Xcode ya tiene activada la capacidad *Associated Domains* con el dominio `applinks:montanaopenaitv.github.io` dentro de `packages/ios-app/yavale/APP.entitlements`.
+   - Xcode ya tiene activada la capacidad *Associated Domains* con el dominio `applinks:m264921.github.io` dentro de `packages/ios-app/yavale/APP.entitlements`.
    - Si usas un dominio personalizado, sustituye la entrada por `applinks:tu-dominio.com` y vuelve a compilar.
 2. **Fichero `apple-app-site-association`**
    - El repo incluye `docs/apple-app-site-association` y `docs/.well-known/apple-app-site-association` con la configuracion para el bundle `montanaAI.tv.yavale` (Team ID `2WULUBTL4D`).
@@ -24,14 +24,20 @@ abran directamente la app nativa en iPhone/iPad.
 3. **Sincroniza y despliega**
    - Sube los cambios a GitHub y espera a que GitHub Pages vuelva a publicar el sitio.
    - La carpeta `docs/` incluye `.nojekyll`, por lo que los JSON se sirven tal cual en cuanto el despliegue termine (suele tardar 1-2 minutos).
-   - Verifica en un dispositivo real que al abrir `https://montanaopenaitv.github.io/yavale/` en Safari se ofrece abrir la app.
+   - Verifica en un dispositivo real que al abrir `https://m264921.github.io/yavale/` en Safari se ofrece abrir la app.
 
 > El fichero `.nojekyll` dentro de `docs/` garantiza que GitHub Pages sirva los JSON tal cual.
+
+Los enlaces universales requieren que Apple pueda leer el fichero de asociacion
+en la raiz del dominio (`/.well-known/apple-app-site-association`), no solo bajo
+`/yavale/`. En Pages de proyecto hace falta configurar tambien el sitio raiz o
+un dominio propio. La configuracion incluida y la compilacion en simulador no
+certifican que los enlaces universales esten operativos en tu iPhone.
 
 ## Requisitos
 
 - Node.js 18+ (para el addon y los scripts CLI).
-- npm o pnpm (instala dependencias dentro de cada paquete que lo requiera).
+- npm: ejecuta `npm ci` en la raiz; instala los paquetes compartidos mediante workspaces.
 - Xcode (si vas a tocar `packages/ios-app`).
 
 ## Scripts utiles
@@ -139,9 +145,38 @@ docs/
 
 ## Proximos pasos recomendados
 
-- Anadir scripts npm que ejecuten `npm install` recursivo (workspaces) si el monorepo crece.
 - Automatizar la actualizacion de la playlist con GitHub Actions (subida cada vez que hagas push).
 - Integrar autenticacion o proteccion en el addon si lo expones publicamente.
 
 ---
 Proyecto iniciado por @M264921 y adoptado como monorepo YaVale. Disfruta tus streams.
+
+## Consolidacion del 15/10/2026
+
+Este repositorio es la fuente principal de MontanaTV. `MontanaOpenAITV` conserva
+el acceso historico y `MontanaTV-addon` es un lanzador compatible que carga este
+addon; sus tres entradas de catalogo eran identicas a las de este paquete.
+El formulario antiguo, que dependia de dos JavaScript ausentes, se sustituye por
+[`open-stream.html`](https://m264921.github.io/yavale/open-stream.html): valida el
+hash y permite indicar el motor sin modificar codigo. No comprueba que el motor
+este disponible ni garantiza reproduccion desde una web HTTPS hacia HTTP.
+
+`npm test` comprueba HTTP del addon, catalogo/metadata/streams, rutas del servidor
+web, enlaces manuales y errores de procesos. `npm run sync:webapp` mantiene Pages
+y WebBundle iguales a la fuente. La compilacion iOS se valida en el workflow de
+macOS; las pruebas Node de Windows no certifican firma ni reproduccion en iPhone.
+
+### montana-cli
+
+La CLI local se integra en `packages/montana-cli` y comparte el addon de este
+monorepo. Tras `npm ci`, usa `npm exec -- montana --help` y
+`npm exec -- montana addon:start`. `addon:stop` comprueba PID e identidad del
+proceso antes de detenerlo. Logs y estado quedan en `.montana-run`.
+Copiar `.env.example` a `.env` es opcional; conserva tus valores privados fuera
+de Git. No se han trasladado credenciales del PC al repositorio.
+WireGuard requiere instalacion y permisos administrativos propios; no se activa
+ni se cambia ninguna VPN al instalar o probar este proyecto.
+
+Las carpetas antiguas `app`, `app-ios` y `APP.xcodeproj` de raiz se conservan como
+antecedentes hasta completar una comparacion de recursos; la app vigente es
+`packages/ios-app`. No uses el numero de archivos para elegir una version.

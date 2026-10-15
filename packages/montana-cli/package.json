@@ -1,0 +1,10 @@
+{
+  "name": "@yavale/montana-cli",
+  "version": "0.2.0",
+  "description": "Gestion local de los servicios de YaVale",
+  "type": "commonjs",
+  "bin": { "montana": "bin/montana.js" },
+  "scripts": { "test": "node --test tests/*.test.js" },
+  "dependencies": { "commander": "^12.1.0", "dotenv": "^16.4.7" },
+  "engines": { "node": ">=18" }
+}
