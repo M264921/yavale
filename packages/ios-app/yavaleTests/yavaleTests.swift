@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import yavale
+@testable import APP
 
 final class yavaleTests: XCTestCase {
 
@@ -19,6 +19,10 @@ final class yavaleTests: XCTestCase {
     }
 
     func testExample() throws {
+        // El proyecto movido debe incluir el cliente canonico, no un HTML de raiz ausente.
+        let html = try XCTUnwrap(Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "WebBundle"))
+        XCTAssertTrue(try String(contentsOf: html, encoding: .utf8).contains("Playlist AceStream"))
+        XCTAssertNotNil(Bundle.main.url(forResource: "playlist", withExtension: "json", subdirectory: "WebBundle"))
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         // Any test you write for XCTest can be annotated as throws and async.
