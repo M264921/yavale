@@ -145,7 +145,7 @@ function pageHarness(fetcher, initial = {}) {
   }
   const copied = [];
   const html = fs.readFileSync(path.join(__dirname, "../packages/web-client/public/index.html"), "utf8");
-  const inline = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
+  const inline = html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1];
   new Function("window", "document", "FormData", "navigator", "AbortController", "clearTimeout", inline)(
     window, document, FormData, { clipboard: { writeText: async value => { copied.push(value); } } }, Controller, () => {});
   return { window, nodes, copied };
@@ -246,7 +246,7 @@ test("playlist regeneration preserves remote integration and synchronizes Pages 
     const html = fs.readFileSync(path.join(root, "packages/web-client/public/index.html"), "utf8");
     assert.ok(html.includes('id="catalog-refresh"'));
     assert.ok(html.includes('./assets/js/remote-engine.js'));
-    new Function(html.match(/<script>\n([\s\S]*?)<\/script>/)[1]);
+    new Function(html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1]);
     for (const target of ["docs", "packages/ios-app/WebBundle"]) {
       assert.equal(fs.readFileSync(path.join(root, target, "index.html"), "utf8"), html);
       assert.equal(fs.readFileSync(path.join(root, target, "assets/js/remote-engine.js"), "utf8"),
