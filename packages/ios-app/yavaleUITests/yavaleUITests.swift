@@ -28,7 +28,7 @@ final class yavaleUITests: XCTestCase {
         app.launch()
         let webView = app.webViews.element(boundBy: 0)
         XCTAssertTrue(webView.waitForExistence(timeout: 5))
-        XCTAssertTrue(webView.buttons["Reproducir"].exists)
+        XCTAssertTrue(webView.links["Reproducir"].firstMatch.waitForExistence(timeout: 15))
     }
 
     func testLaunchPerformance() throws {

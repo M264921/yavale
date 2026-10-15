@@ -28,6 +28,12 @@ abran directamente la app nativa en iPhone/iPad.
 
 > El fichero `.nojekyll` dentro de `docs/` garantiza que GitHub Pages sirva los JSON tal cual.
 
+Los enlaces universales requieren que Apple pueda leer el fichero de asociacion
+en la raiz del dominio (`/.well-known/apple-app-site-association`), no solo bajo
+`/yavale/`. En Pages de proyecto hace falta configurar tambien el sitio raiz o
+un dominio propio. La configuracion incluida y la compilacion en simulador no
+certifican que los enlaces universales esten operativos en tu iPhone.
+
 ## Requisitos
 
 - Node.js 18+ (para el addon y los scripts CLI).
